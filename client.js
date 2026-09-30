@@ -21,7 +21,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const BACKEND_URL = "https://tlucifer-backend.onrender.com";
+// Same origin: the Express server that serves this page also serves /api/*
+const BACKEND_URL = "";
 
 // State Management
 let tempUserData = { mode: '', name: '', email: '', pass: '' };
@@ -39,6 +40,67 @@ const setElementText = (id, text) => {
   const el = document.getElementById(id);
   if (el) el.innerText = text;
 };
+
+
+// ---------------------------------------------------------------------------
+// Login page background (hero-car.jpg) - injected so no CSS file edit is needed
+// ---------------------------------------------------------------------------
+(() => {
+  const style = document.createElement('style');
+  style.textContent = `
+    body.auth-mode {
+      background-color: #000;
+      background-image: linear-gradient(90deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%), url('/images/hero-car.jpg');
+      background-repeat: no-repeat;
+      background-position: left center;
+      background-size: auto, contain;
+      min-height: 100vh;
+    }
+    @media (max-width: 900px) {
+      body.auth-mode { background-position: center 12%; background-size: auto, 100% auto; }
+    }
+    .bk-table { width:100%; border-collapse:collapse; }
+    .bk-table th, .bk-table td { padding:10px 12px; text-align:left; border-bottom:1px solid rgba(128,128,128,.25); vertical-align:top; }
+    .bk-table select { padding:4px 6px; border-radius:6px; }
+    .bk-empty { padding:24px; opacity:.7; }
+  `;
+  document.head.appendChild(style);
+})();
+
+// ---------------------------------------------------------------------------
+// Bookings panel (bookings sent from the LankaRides website)
+// ---------------------------------------------------------------------------
+(() => {
+  const nav = document.querySelector('.sidebar-nav');
+  const anchor = document.getElementById('panel-overview');
+  if (!nav || !anchor) return;
+
+  // Sidebar item: clone an existing one so it matches the current styling
+  const template = nav.querySelector('.nav-item');
+  if (template) {
+    const item = template.cloneNode(true);
+    item.classList.remove('active');
+    item.setAttribute('data-panel', 'bookings');
+    item.textContent = 'Bookings';
+    nav.appendChild(item);
+  }
+
+  // Panel
+  const panel = document.createElement('div');
+  panel.id = 'panel-bookings';
+  panel.className = 'panel-content hidden';
+  panel.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0;">Website Bookings</h3>
+      <button id="btn-refresh-bookings" type="button">Refresh</button>
+    </div>
+    <div style="overflow-x:auto;"><table class="bk-table">
+      <thead><tr><th>ID</th><th>Customer</th><th>Trip</th><th>When</th><th>Pax</th><th>Status</th></tr></thead>
+      <tbody id="bookings-table-body"></tbody>
+    </table></div>
+    <div id="bookings-empty" class="bk-empty hidden">No bookings yet.</div>`;
+  anchor.parentElement.appendChild(panel);
+})();
 
 // Initial Calendar Values
 const todayStr = new Date().toISOString().split('T')[0];
@@ -70,6 +132,10 @@ navItems.forEach(item => {
       targetPanel = document.getElementById('panel-sales');
     } else if (panelKey === 'stock') {
       targetPanel = document.getElementById('panel-stock');
+    } else if (panelKey === 'bookings') {
+      targetPanel = document.getElementById('panel-bookings');
+      setElementText('page-subtitle', 'Bookings received from the website');
+      loadBookings();
     } else {
       setElementText('generic-title', panelName);
       targetPanel = document.getElementById('panel-generic');
@@ -555,6 +621,64 @@ document.getElementById('forgot-form')?.addEventListener('submit', async (e) => 
 document.getElementById('btn-logout')?.addEventListener('click', () => {
   signOut(auth);
 });
+
+
+// ---------------------------------------------------------------------------
+// Bookings: load + update status (staff only, verified by Firebase ID token)
+// ---------------------------------------------------------------------------
+const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, ch => (
+  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+));
+
+async function loadBookings() {
+  const tbody = document.getElementById('bookings-table-body');
+  const empty = document.getElementById('bookings-empty');
+  if (!tbody || !auth.currentUser) return;
+
+  try {
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${BACKEND_URL}/api/bookings`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'Failed to load bookings.');
+
+    tbody.innerHTML = '';
+    empty?.classList.toggle('hidden', data.bookings.length > 0);
+
+    data.bookings.forEach(b => {
+      const tr = document.createElement('tr');
+      // All values come from a public form, so everything is escaped.
+      tr.innerHTML = `
+        <td>${escapeHtml(b.id)}<br><small>${escapeHtml(new Date(b.createdAt).toLocaleString())}</small></td>
+        <td>${escapeHtml(b.name)}<br><small>${escapeHtml(b.email)}<br>${escapeHtml(b.phone)}<br>${escapeHtml(b.nationality)}</small></td>
+        <td>${escapeHtml(b.pickup)} &rarr; ${escapeHtml(b.dropoff)}${b.requests ? `<br><small>${escapeHtml(b.requests)}</small>` : ''}</td>
+        <td>${escapeHtml(b.date)} ${escapeHtml(b.time)}</td>
+        <td>${escapeHtml(b.passengers)}</td>
+        <td><select data-id="${escapeHtml(b.id)}">
+          ${['New', 'Confirmed', 'Completed', 'Cancelled'].map(s =>
+            `<option value="${s}" ${s === b.status ? 'selected' : ''}>${s}</option>`).join('')}
+        </select></td>`;
+      tr.querySelector('select').addEventListener('change', async (e) => {
+        try {
+          const t = await auth.currentUser.getIdToken();
+          const r = await fetch(`${BACKEND_URL}/api/bookings/${encodeURIComponent(b.id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+            body: JSON.stringify({ status: e.target.value })
+          });
+          if (!r.ok) throw new Error('Update failed.');
+        } catch (err) {
+          alert(err.message);
+          loadBookings();
+        }
+      });
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    alert('Bookings error: ' + err.message);
+  }
+}
+
+document.getElementById('btn-refresh-bookings')?.addEventListener('click', loadBookings);
 
 // Firebase Auth State Observer
 onAuthStateChanged(auth, (user) => {

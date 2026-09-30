@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,7 +11,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middleware
-app.use(cors());
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
+  'https://fast-travel-1.vercel.app,https://tlucifer-backend-new.onrender.com,http://localhost:3000')
+  .split(',').map(s => s.trim());
+app.use(cors({
+  origin: (origin, cb) => (!origin || ALLOWED_ORIGINS.includes(origin)) ? cb(null, true) : cb(new Error('Not allowed by CORS')),
+}));
 app.use(express.json());
 
 // Serve static frontend assets
@@ -138,9 +144,117 @@ app.post('/api/settings', (req, res) => {
   }
 });
 
+
+// ---------------------------------------------------------------------------
+// BOOKINGS (website -> backoffice)
+// ---------------------------------------------------------------------------
+const bookingsStore = []; // NOTE: in-memory; resets when Render restarts. Move to a DB for production.
+const rateLimit = new Map(); // ip -> [timestamps]
+
+const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc';
+
+// Verifies a Firebase ID token (sent by the backoffice) using Google's REST API
+async function requireStaff(req, res, next) {
+  try {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    if (!token) return res.status(401).json({ success: false, message: 'Missing auth token.' });
+    const r = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: token }),
+    });
+    if (!r.ok) return res.status(401).json({ success: false, message: 'Invalid or expired token.' });
+    const data = await r.json();
+    req.user = data.users?.[0];
+    return next();
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Auth check failed.' });
+  }
+}
+
+const clean = (v, max = 300) => String(v ?? '').trim().slice(0, max);
+
+// PUBLIC: called by the website booking form
+app.post('/api/bookings', (req, res) => {
+  try {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
+    const now = Date.now();
+    const hits = (rateLimit.get(ip) || []).filter(t => now - t < 10 * 60 * 1000);
+    if (hits.length >= 5) {
+      return res.status(429).json({ success: false, message: 'Too many requests. Please try again later.' });
+    }
+    hits.push(now);
+    rateLimit.set(ip, hits);
+
+    const b = req.body || {};
+    if (b.website) return res.status(200).json({ success: true }); // honeypot for bots
+
+    const booking = {
+      id: 'BK-' + Date.now().toString(36).toUpperCase(),
+      status: 'New',
+      createdAt: new Date().toISOString(),
+      pickup: clean(b.pickup),
+      dropoff: clean(b.dropoff),
+      date: clean(b.date, 20),
+      time: clean(b.time, 10),
+      name: clean(b.name, 100),
+      email: clean(b.email, 150).toLowerCase(),
+      phone: clean(b.phone, 40),
+      nationality: clean(b.nationality, 60),
+      passengers: Math.min(Math.max(parseInt(b.passengers, 10) || 1, 1), 50),
+      requests: clean(b.requests, 1000),
+      vehicle: clean(b.vehicle, 60),
+    };
+
+    const missing = ['pickup', 'dropoff', 'date', 'time', 'name', 'email', 'phone', 'nationality']
+      .filter(k => !booking[k]);
+    if (missing.length) {
+      return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+    }
+    if (!/^\S+@\S+\.\S+$/.test(booking.email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email address.' });
+    }
+
+    bookingsStore.unshift(booking);
+    console.log('[BOOKING] New booking', booking.id, booking.name);
+
+    // Optional: notify the owner by email
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      transporter.sendMail({
+        from: `"TD System" <${process.env.EMAIL_USER}>`,
+        to: process.env.BOOKING_NOTIFY_TO || process.env.EMAIL_USER,
+        subject: `New booking ${booking.id} - ${booking.name}`,
+        text: Object.entries(booking).map(([k, v]) => `${k}: ${v}`).join('\n'),
+      }).catch(e => console.error('Booking email failed:', e.message));
+    }
+
+    return res.status(201).json({ success: true, id: booking.id, message: 'Booking received.' });
+  } catch (err) {
+    console.error('Error creating booking:', err);
+    return res.status(500).json({ success: false, message: 'Server error creating booking.' });
+  }
+});
+
+// PROTECTED: backoffice staff only
+app.get('/api/bookings', requireStaff, (req, res) => {
+  res.status(200).json({ success: true, bookings: bookingsStore });
+});
+
+app.patch('/api/bookings/:id', requireStaff, (req, res) => {
+  const b = bookingsStore.find(x => x.id === req.params.id);
+  if (!b) return res.status(404).json({ success: false, message: 'Booking not found.' });
+  const allowed = ['New', 'Confirmed', 'Completed', 'Cancelled'];
+  if (!allowed.includes(req.body?.status)) {
+    return res.status(400).json({ success: false, message: 'Invalid status.' });
+  }
+  b.status = req.body.status;
+  res.status(200).json({ success: true, booking: b });
+});
+
 // Fallback Route for Single Page Application updated to index_6.html
 app.get(/(.*)/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'index_9.html'));
+  const page = fs.existsSync(path.join(__dirname, 'index.html')) ? 'index.html' : 'index_9.html';
+  res.sendFile(path.join(__dirname, page));
 });
 
 // Start Server
