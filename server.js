@@ -13,7 +13,7 @@ const app = express();
 // Middleware
 // Origins allowed to call the API from another site (the public website).
 // Set ALLOWED_ORIGINS in your environment as a comma-separated list.
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://fast-travel-1.vercel.app,http://localhost:3000')
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://lanka-rides-kappa.vercel.app,https://fast-travel-1.vercel.app,http://localhost:3000,http://localhost:5500,http://127.0.0.1:5500')
   .split(',').map(s => s.trim()).filter(Boolean);
 
 app.use(cors((req, cb) => {
