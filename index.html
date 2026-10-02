@@ -3,37 +3,42 @@
 <title>Lanka Rides Back Office</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#c8e6fe;--ink:#0b1437;--mut:#5b6785;--bl:#1565e0;--ln:#b9c0ff}
+:root{--bg:#c8e6fe;--ink:#0b1437;--mut:#5b6785;--bl:#1565e0;--ln:#b9c0ff;--card:#fff;--nav:#f5f5f5;--th:#cdd2ff;--odd:#f5f7ff;--pill:#111}
+[data-theme=dark]{--bg:#0b1220;--ink:#e8ecf8;--mut:#9aa6c4;--ln:#2f3b63;--card:#151e33;--nav:#141c2f;--th:#243056;--odd:#1a243c;--pill:#26325a}
+[data-theme=dark] .cd,[data-theme=dark] .st,[data-theme=dark] .tw{box-shadow:none}
+.tile.aqua{color:#0b1437}#th{position:fixed;right:16px;bottom:16px;z-index:9;width:44px;height:44px;border-radius:50%;border:1px solid var(--ln);background:var(--card);color:var(--ink);font-size:20px;cursor:pointer;padding:0}
+.sw{border:0;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;color:#fff}.sw.on{background:#3dba54}.sw.off{background:#e8484d}
+.af{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}.af input,.af select{width:auto;flex:1;min-width:150px}
 *{box-sizing:border-box;margin:0;font-family:Poppins,system-ui,sans-serif}
 body{background:var(--bg);color:var(--ink);min-height:100vh}.hidden{display:none!important}
-#login{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;background:#fff}
+#login{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;background:var(--card)}
 .lp{background:#5b7cfa;position:relative;overflow:hidden;color:#fff;padding:56px}
 .lp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;opacity:.6}
 .lp>*{position:relative}.lp h2{font-size:44px;margin-top:150px;line-height:1.1}.lp h2 span{font-weight:400}
 .logo{width:48px;height:48px;background:#e4e3df;color:#222;font:700 20px Georgia,serif;display:grid;place-items:center;border-radius:6px}
 .lf{display:flex;flex-direction:column;justify-content:center;padding:0 90px}.lf h1{color:#5b7cfa;font-size:40px}
 .lf label{font-weight:600;font-size:14px;margin:18px 0 6px}
-input,select{padding:12px 18px;border:1px solid var(--ln);border-radius:30px;font-size:14px;background:#fff;width:100%}
+input,select{padding:12px 18px;border:1px solid var(--ln);border-radius:30px;font-size:14px;background:var(--card);width:100%}
 .btn{border:0;border-radius:30px;padding:12px 22px;font-weight:500;cursor:pointer;color:#fff;background:linear-gradient(#4a90ff,var(--bl));font-size:14px}
-.btn.o{background:#fff;color:var(--bl);border:1px solid var(--ln)}.btn.g{background:#3dba54}.btn.r{background:#e8484d}.btn.s{padding:6px 14px;font-size:13px}
+.btn.o{background:var(--card);color:var(--bl);border:1px solid var(--ln)}.btn.g{background:#3dba54}.btn.r{background:#e8484d}.btn.s{padding:6px 14px;font-size:13px}
 #err{color:#c62828;font-size:13px;margin-top:10px}
-nav{margin:26px 40px 0;background:#f5f5f5;border-radius:40px;padding:12px 22px;display:flex;align-items:center;gap:10px}
+nav{margin:26px 40px 0;background:var(--nav);border-radius:40px;padding:12px 22px;display:flex;align-items:center;gap:10px}
 nav b{font-size:18px;margin:0 auto 0 12px}nav .logo{width:40px;height:40px;font-size:16px}
-nav a{background:#111;color:#fff;border-radius:30px;padding:10px 24px;text-decoration:none;font-size:15px}
+nav a{background:var(--pill);color:#fff;border-radius:30px;padding:10px 24px;text-decoration:none;font-size:15px}
 nav a.on{background:linear-gradient(#4a90ff,var(--bl))}nav span{font-size:12px;color:var(--mut);margin-left:18px;text-align:right}
 nav span b{display:block;color:var(--ink);font-size:14px;margin:0}
 main{padding:20px 40px 50px}h1.t{font-size:30px}.sub{color:var(--mut);font-size:14px;margin:2px 0 14px}
 .hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
 .g{display:grid;gap:16px;margin-bottom:16px}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
-.st{background:#fff;border-radius:20px;padding:16px 18px;box-shadow:0 6px 18px #0a3a7a22}.st small{color:var(--mut);font-size:12px;display:block}.st b{font-size:24px}
+.st{background:var(--card);border-radius:20px;padding:16px 18px;box-shadow:0 6px 18px #0a3a7a22}.st small{color:var(--mut);font-size:12px;display:block}.st b{font-size:24px}
 .tile{display:block;color:#fff;text-decoration:none;border-radius:22px;padding:22px;min-height:120px;background:linear-gradient(#0a56d8,#4a96ff);cursor:pointer}
 .tile h3{font-size:24px}.tile p{font-size:13px;margin-top:34px;opacity:.9}.tile.green{background:linear-gradient(#2e9e41,#74d160)}.tile.red{background:linear-gradient(#cc3a40,#ee7075)}
 .tile.aqua{background:linear-gradient(135deg,#2db6dd,#e8f6ff);color:var(--ink)}.tile big{display:block;font-size:44px;font-weight:700;margin-top:40px}
-.cd{background:#fff;border-radius:20px;padding:18px;box-shadow:0 6px 18px #0a3a7a22;margin-bottom:16px}.cd h4{margin-bottom:8px}.cd p{font-size:14px;margin:8px 0}
-.tw{background:#fff;border-radius:20px;overflow:auto;box-shadow:0 6px 18px #0a3a7a22;border:2px solid var(--ln)}
-table{width:100%;border-collapse:collapse;font-size:13px}th{background:#cdd2ff;padding:12px 8px}td{padding:14px 8px;text-align:center;border:1px solid var(--ln)}
-tbody tr:nth-child(odd){background:#f5f7ff}tr[data-go]{cursor:pointer}
-.bd{border-radius:20px;padding:3px 12px;font-size:12px;background:#fff3c4;color:#8a5a00;white-space:nowrap}
+.cd{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 6px 18px #0a3a7a22;margin-bottom:16px}.cd h4{margin-bottom:8px}.cd p{font-size:14px;margin:8px 0}
+.tw{background:var(--card);border-radius:20px;overflow:auto;box-shadow:0 6px 18px #0a3a7a22;border:2px solid var(--ln)}
+table{width:100%;border-collapse:collapse;font-size:13px}th{background:var(--th);padding:12px 8px}td{padding:14px 8px;text-align:center;border:1px solid var(--ln)}
+tbody tr:nth-child(odd){background:var(--odd)}tr[data-go]{cursor:pointer}
+.bd{border-radius:20px;padding:3px 12px;font-size:12px;background:var(--card)3c4;color:#8a5a00;white-space:nowrap}
 .bd.ok{background:#d9f4de;color:#1c7a2f}.bd.no{background:#fde0e0;color:#b3262b}.bd.in{background:#e1e8ff;color:#2750c8}
 .bar{height:12px;border-radius:8px;background:linear-gradient(90deg,#2db6dd,#4a90ff)}.bars{display:flex;align-items:flex-end;gap:16px;height:200px}
 .bars div{flex:1;text-align:center;font-size:12px}.bars i{display:block;border-radius:10px 10px 0 0;background:linear-gradient(#4a90ff,#0a56d8)}
@@ -41,7 +46,8 @@ tbody tr:nth-child(odd){background:#f5f7ff}tr[data-go]{cursor:pointer}
 .set label{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:10px 0;gap:10px}.set input{width:110px;padding:8px 12px}
 @media(max-width:900px){#login{grid-template-columns:1fr}.lp{display:none}.lf{padding:40px}.g3,.g4,.g5,.two{grid-template-columns:1fr 1fr}nav{flex-wrap:wrap;margin:12px}main{padding:16px}}
 </style></head><body>
-<section id="login"><div class="lp"><div class="logo">TD</div><img src="/images/hero-car.jpg" alt="">
+<button id="th" title="Dark / light mode">🌙</button>
+<section id="login"><div class="lp"><div class="logo">TD</div><img src="images/hero-car.jpg" alt="">
 <p style="margin-top:130px">Lanka Rides back office</p><h2><b>Secure access.</b><br><span>Smarter control.</span></h2></div>
 <form class="lf" id="lf"><h1>Welcome back</h1><p class="sub">Sign in to manage bookings, fleet and payments.</p>
 <label>Email address</label><input id="em" type="email" placeholder="you@lankarides.com" required>
@@ -54,24 +60,27 @@ tbody tr:nth-child(odd){background:#f5f7ff}tr[data-go]{cursor:pointer}
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 const auth=getAuth(initializeApp({apiKey:"AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc",authDomain:"tlucifer-auth.firebaseapp.com",projectId:"tlucifer-auth"}));
+const setTheme=t=>{document.documentElement.dataset.theme=t;localStorage.setItem("theme",t);document.getElementById("th").textContent=t=="dark"?"☀️":"🌙"};
+setTheme(localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
+document.getElementById("th").onclick=()=>setTheme(document.documentElement.dataset.theme=="dark"?"light":"dark");
 const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LKR=n=>n?'LKR '+Number(n).toLocaleString():'—';
+// When opened with Live Server / file://, talk to the Node server on port 3000
+const API=(['5500','5501'].includes(location.port)||location.protocol==='file:')?'http://localhost:3000':'';
 let BK=[],CFG={minNotice:3,maxDuration:14,buffer:30,grace:15,rateSedan:120,rateKDH:280,rateHatch:95};
-// Demo data (no backend for these yet)
-const FLEET=[['Toyota Prius','Sedan','CAB-4521',92,'Service in 1,200 km','Available'],['Toyota Prius','Sedan','CAD-9033',64,'Insurance ends 14 Nov','On trip'],['Toyota HiAce KDH','KDH','WP KK-7788',78,'Service due now','Needs service'],['Suzuki Wagon R','Hatchback','CBB-1207',55,'All clear','Available'],['Toyota Axio','Sedan','CAF-3340',70,'Licence ends 02 Dec','On trip']];
-const DRIVERS=['Kasun Silva','Nuwan Jay','Ruwan P.'];
+let FLEET=[],DR=[]; // loaded from the server
 const USERS=[['Tevin Gampalage','tevin@lankarides.com','Owner','Active'],['Jack Rowe','jack@lankarides.com','Dispatcher','Active'],['Kasun Silva','kasun@lankarides.com','Driver','Active'],['Dilini Fernando','dilini@lankarides.com','Accountant','Active']];
-async function api(p,o={}){const t=await auth.currentUser.getIdToken();const r=await fetch('/api'+p,{...o,headers:{'Content-Type':'application/json',Authorization:'Bearer '+t}});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.message||'Request failed');return d}
-async function load(){try{BK=(await api('/bookings')).bookings;const s=await(await fetch('/api/settings')).json();Object.assign(CFG,s.settings||{});route()}catch(e){console.warn(e)}}
+async function api(p,o={}){const t=await auth.currentUser.getIdToken();const r=await fetch(API+'/api'+p,{...o,headers:{'Content-Type':'application/json',Authorization:'Bearer '+t}});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success)throw new Error(d.message||'Request failed');return d}
+async function load(){try{[BK,DR,FLEET]=(await Promise.all([api('/bookings'),api('/drivers'),api('/fleet')])).map((r,i)=>r.bookings||r.drivers||r.fleet);const s=await(await fetch(API+'/api/settings')).json();Object.assign(CFG,s.settings||{});route(true)}catch(e){console.warn(e)}}
 const T=(h,r)=>`<div class="tw"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r||`<tr><td colspan="${h.length}">Nothing here yet</td></tr>`}</tbody></table></div>`;
 const bd=(t,c='')=>`<span class="bd ${c}">${E(t)}</span>`,when=b=>E(b.date+' · '+b.time);
 const by=s=>BK.filter(b=>b.status===s);
 const head=(t,s,x='')=>`<div class="hd"><div><h1 class="t">${t}</h1><p class="sub">${s}</p></div><div class="fl">${x}</div></div>`;
 const tile=(h,p,l,c='')=>`<a class="tile ${c}" href="#${l}"><h3>${h}</h3><p>${p}</p></a>`;
 const V={
-dash(){const n=by('New').length,a=by('Accepted'),rej=by('Rejected').length,rev=a.reduce((s,b)=>s+(+b.fare||0),0),free=FLEET.filter(f=>f[5]=='Available').length;
-return head('Dashboard','Monitor your business performance in real time')+`<div class="g g5"><div class="st"><small>New requests</small><b>${n}</b></div><div class="st"><small>Accepted</small><b>${a.length}</b></div><div class="st"><small>Revenue (accepted)</small><b>${LKR(rev)}</b></div><div class="st"><small>Acceptance rate</small><b>${a.length+rej?Math.round(100*a.length/(a.length+rej)):0}%</b></div><div class="st"><small>Vehicles available</small><b>${free} of ${FLEET.length}</b></div></div>
-<div class="g g4">${tile('Bookings',n+' new','bookings')}${tile('Fleet',FLEET.length+' vehicles','fleet')}${tile('Payments',LKR(rev),'reports')}${tile('Reports','Booking report','reports')}${tile('Analytics','Trends and revenue','analytics')}${tile('Drivers',DRIVERS.length+' active','fleet')}${tile('Users',USERS.length+' accounts','users')}${tile('Settings','Rules and rates','settings')}</div>`},
+dash(){const n=by('New').length,a=by('Accepted'),rej=by('Rejected').length,rev=a.reduce((s,b)=>s+(+b.fare||0),0),free=FLEET.length,dOn=DR.filter(d=>d.available).length;
+return head('Dashboard','Monitor your business performance in real time')+`<div class="g g5"><div class="st"><small>New requests</small><b>${n}</b></div><div class="st"><small>Accepted</small><b>${a.length}</b></div><div class="st"><small>Revenue (accepted)</small><b>${LKR(rev)}</b></div><div class="st"><small>Acceptance rate</small><b>${a.length+rej?Math.round(100*a.length/(a.length+rej)):0}%</b></div><div class="st"><small>Vehicles · Drivers available</small><b>${free} · ${dOn}/${DR.length}</b></div></div>
+<div class="g g4">${tile('Bookings',n+' new','bookings')}${tile('Fleet',FLEET.length+' vehicles','fleet')}${tile('Payments',LKR(rev),'reports')}${tile('Reports','Booking report','reports')}${tile('Analytics','Trends and revenue','analytics')}${tile('Drivers',dOn+' of '+DR.length+' available','drivers')}${tile('Users',USERS.length+' accounts','users')}${tile('Settings','Rules and rates','settings')}</div>`},
 bookings(){const old=by('New').filter(b=>Date.now()-new Date(b.createdAt)>2*36e5);
 return head('Bookings','Review requests from the website and manage confirmed trips')+`<div class="g g3">${tile('New requests','<big>'+by('New').length+'</big>','new')}${tile('Accepted','<big>'+by('Accepted').length+'</big>','accepted','green')}${tile('Rejected','<big>'+by('Rejected').length+'</big>','rejected','red')}</div><div class="cd"><h4>Needs attention</h4>${old.map(b=>`<p>${bd('Waiting 2h+')} ${E(b.id)} ${E(b.name)} · ${E(b.pickup)} to ${E(b.dropoff)}</p>`).join('')||'<p>Nothing waiting.</p>'}</div>`},
 new(){return head('New requests',by('New').length+' waiting for a decision')+T(['Booking ID','Customer','Mobile','From','To','Type','Vehicle','Pickup','Fare','Action'],by('New').map(b=>`<tr data-go="booking/${E(b.id)}"><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.type||'—')}</td><td>${E(b.vehicle||'—')}</td><td>${when(b)}</td><td>${LKR(b.fare)}</td><td><button class="btn g s">Accept</button> <button class="btn r s" data-dec="${E(b.id)}">Decline</button></td></tr>`).join(''))},
@@ -79,8 +88,9 @@ accepted(){return head('Accepted requests',by('Accepted').length+' confirmed tri
 rejected(){return head('Rejected requests',by('Rejected').length+' declined')+T(['Booking ID','Customer','Mobile','From','To','Vehicle','Reason','Customer notified'],by('Rejected').map(b=>`<tr><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle||'—')}</td><td>${bd(b.reason||'—','no')}</td><td>Email sent</td></tr>`).join(''))},
 booking(id){const b=BK.find(x=>x.id==id);if(!b)return head('Not found','');const op=(a,v)=>a.map(x=>`<option ${x==v?'selected':''}>${E(x)}</option>`).join('');
 return head('Booking '+E(b.id),bd(b.status,b.status=='Accepted'?'ok':b.status=='Rejected'?'no':'')+' Received '+new Date(b.createdAt).toLocaleString()+' via website')+`<div class="two"><div class="cd"><h4>Trip</h4><p>${E(b.pickup)} → ${E(b.dropoff)} · ${when(b)}</p><p>Passengers ${E(b.passengers)} · Nationality ${E(b.nationality)}</p><p>Special request: ${E(b.requests||'none')}</p><hr><h4 style="margin-top:12px">Customer</h4><p>${E(b.name)} · ${E(b.phone)} · ${E(b.email)}</p><hr><h4 style="margin-top:12px">Fare</h4><div class="row"><p>${E(b.vehicle||b.type||'Vehicle not chosen')}</p><b>${LKR(b.fare)}</b></div></div>
-<div class="cd"><h4>Assign</h4><select id="dr"><option value="">Driver…</option>${op(DRIVERS,b.driver)}</select><br><br><select id="ve"><option value="">Vehicle…</option>${op(FLEET.map(f=>f[0]+' · '+f[2]),b.vehicle)}</select><br><br><button class="btn g" style="width:100%" data-acc="${E(b.id)}">Accept and notify</button><br><br><button class="btn r" style="width:100%" data-dec="${E(b.id)}">Decline with reason</button></div></div>`},
-fleet(){return head('Fleet',FLEET.length+' vehicles · '+FLEET.filter(f=>f[5]=='Available').length+' available (demo data)')+T(['Vehicle','Type','Plate','Utilisation','Maintenance','Status'],FLEET.map(f=>`<tr><td>${f[0]}</td><td>${f[1]}</td><td>${f[2]}</td><td><div class="bar" style="width:${f[3]}%"></div>${f[3]}%</td><td>${f[4]}</td><td>${bd(f[5],f[5]=='Available'?'ok':f[5]=='On trip'?'':'no')}</td></tr>`).join(''))},
+<div class="cd"><h4>Assign</h4><select id="dr"><option value="">Driver…</option>${op(DR.filter(d=>d.available||d.name==b.driver).map(d=>d.name),b.driver)}</select><br><br><select id="ve"><option value="">Vehicle…</option>${op(FLEET.map(f=>f.name+' · '+f.plate),b.vehicle)}</select><br><br><button class="btn g" style="width:100%" data-acc="${E(b.id)}">Accept and notify</button><br><br><button class="btn r" style="width:100%" data-dec="${E(b.id)}">Decline with reason</button></div></div>`},
+fleet(){return head('Fleet',FLEET.length+' vehicles')+`<div class="af"><input id="vn" placeholder="Vehicle (e.g. Toyota Prius)"><select id="vt"><option>Sedan</option><option>KDH</option><option>Hatchback</option></select><input id="vp" placeholder="Plate number"><button class="btn" id="addVe">Add vehicle</button></div>`+T(['Vehicle','Type','Plate','Action'],FLEET.map(f=>`<tr><td>${E(f.name)}</td><td>${E(f.type)}</td><td>${E(f.plate)}</td><td><button class="btn r s" data-rmv="${E(f.id)}">Remove</button></td></tr>`).join(''))},
+drivers(){const n=DR.filter(d=>d.available).length;return head('Drivers',n+' available · '+(DR.length-n)+' unavailable · updates live')+`<div class="af"><input id="dn" placeholder="Driver name"><input id="dp" placeholder="Phone"><button class="btn" id="addDr">Add driver</button></div>`+T(['Name','Phone','Availability','Since','Action'],DR.map(d=>`<tr><td>${E(d.name)}</td><td>${E(d.phone)}</td><td><button class="sw ${d.available?'on':'off'}" data-tg="${E(d.id)}">${d.available?'Available':'Unavailable'}</button></td><td>${new Date(d.updatedAt).toLocaleString()}</td><td><button class="btn r s" data-rmd="${E(d.id)}">Remove</button></td></tr>`).join(''))},
 reports(){return head('Reports','Choose a report, set a date range, then print or export')+`<div class="g g4">${tile('Booking report','Open ›','report','aqua')}${['Sales report','Payment mode summary','Cash and flow','Refund report','Driver report','Vehicle utilisation','Customer report'].map(x=>`<a class="tile aqua" onclick="alert('${x}: coming soon')"><h3>${x}</h3><p>Open ›</p></a>`).join('')}</div>`},
 report(){const c=s=>by(s).length;return head('Booking report','All website bookings',`<button class="btn o" onclick="print()">Print</button><button class="btn" id="ex">Export</button>`)+`<div class="g g5">${[['Total bookings',BK.length],['Accepted',c('Accepted')],['Rejected',c('Rejected')],['Cancelled',c('Cancelled')],['Completed',c('Completed')]].map(x=>`<div class="st"><small>${x[0]}</small><b>${x[1]}</b></div>`).join('')}</div>`+T(['Booking ID','Customer','Mobile','From','To','Vehicle','Pickup','Status'],BK.map(b=>`<tr><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle||'—')}</td><td>${when(b)}</td><td>${bd(b.status,b.status=='Accepted'||b.status=='Completed'?'ok':b.status=='Rejected'?'no':'')}</td></tr>`).join(''))},
 analytics(){const m={};BK.forEach(b=>{const k=b.createdAt.slice(0,7);m[k]=(m[k]||0)+1});const ks=Object.keys(m).sort().slice(-6),mx=Math.max(1,...ks.map(k=>m[k])),d={};BK.forEach(b=>d[b.dropoff]=(d[b.dropoff]||0)+1);const td=Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -88,14 +98,19 @@ return head('Analytics','Bookings from the website')+`<div class="g g4"><div cla
 settings(){const f=(k,l,u)=>`<label>${l}<input data-k="${k}" value="${E(CFG[k])}"></label>`;
 return head('Settings','Rules the website and back office follow',`<a class="btn o" href="#users" style="text-decoration:none">Users and roles</a><button class="btn" id="sv">Save changes</button>`)+`<div class="g g3 set"><div class="cd"><h4>Booking rules</h4>${f('minNotice','Minimum notice (hrs)')}${f('maxDuration','Maximum duration (days)')}${f('buffer','Buffer between trips (min)')}${f('grace','No-show grace (min)')}</div><div class="cd"><h4>Rates (LKR per km)</h4>${f('rateSedan','Sedan')}${f('rateKDH','KDH')}${f('rateHatch','Hatch')}<h4 style="margin-top:14px">Cancellation policy</h4><p>48 hrs or more ${bd('Free','ok')}</p><p>24 to 48 hrs ${bd('25% fee')}</p><p>Under 24 hrs ${bd('50% fee','no')}</p></div></div>`},
 users(){return head('Users and roles',USERS.length+' accounts (demo data)')+T(['Name','Email','Role','Status'],USERS.map(u=>`<tr><td>${u[0]}</td><td>${u[1]}</td><td>${bd(u[2],'in')}</td><td>${bd(u[3],'ok')}</td></tr>`).join(''))}};
-const NAV=[['Dashboard','dash'],['Bookings','bookings'],['Fleet','fleet'],['Reports','reports'],['Settings','settings']],GRP={new:'bookings',accepted:'bookings',rejected:'bookings',booking:'bookings',report:'reports',users:'settings',analytics:'dash'};
-function route(){if(!auth.currentUser)return;let[r,a]=(location.hash.slice(1)||'dash').split('/');if(!V[r])r='dash';const on=GRP[r]||r;
+const NAV=[['Dashboard','dash'],['Bookings','bookings'],['Fleet','fleet'],['Drivers','drivers'],['Reports','reports'],['Settings','settings']],GRP={new:'bookings',accepted:'bookings',rejected:'bookings',booking:'bookings',report:'reports',users:'settings',analytics:'dash'};
+function route(soft){if(!auth.currentUser)return;if(soft&&[...document.querySelectorAll('#app input,#app select')].some(i=>i.value!==i.defaultValue))return;let[r,a]=(location.hash.slice(1)||'dash').split('/');if(!V[r])r='dash';const on=GRP[r]||r;
 $('#nv').innerHTML=NAV.map(n=>`<a href="#${n[1]}" class="${n[1]==on?'on':''}">${n[0]}</a>`).join('');$('#app').innerHTML=V[r](a)}
 addEventListener('hashchange',route);
 const patch=(id,body)=>api('/bookings/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(body)}).then(load).catch(e=>alert(e.message));
 document.addEventListener('click',e=>{const t=e.target;
 if(t.dataset.acc)return patch(t.dataset.acc,{status:'Accepted',driver:$('#dr').value,vehicle:$('#ve').value});
 if(t.dataset.dec){const r=prompt('Reason for declining?');return r&&patch(t.dataset.dec,{status:'Rejected',reason:r})}
+if(t.id=='addDr'){const n=$('#dn').value.trim();return n?api('/drivers',{method:'POST',body:JSON.stringify({name:n,phone:$('#dp').value})}).then(load).catch(e=>alert(e.message)):alert('Enter a name')}
+if(t.dataset.tg){const d=DR.find(x=>x.id==t.dataset.tg);return api('/drivers/'+d.id,{method:'PATCH',body:JSON.stringify({available:!d.available})}).then(load).catch(e=>alert(e.message))}
+if(t.dataset.rmd)return confirm('Remove this driver?')&&api('/drivers/'+t.dataset.rmd,{method:'DELETE'}).then(load).catch(e=>alert(e.message));
+if(t.id=='addVe'){const n=$('#vn').value.trim();return n?api('/fleet',{method:'POST',body:JSON.stringify({name:n,type:$('#vt').value,plate:$('#vp').value})}).then(load).catch(e=>alert(e.message)):alert('Enter a vehicle name')}
+if(t.dataset.rmv)return confirm('Remove this vehicle?')&&api('/fleet/'+t.dataset.rmv,{method:'DELETE'}).then(load).catch(e=>alert(e.message));
 if(t.id=='sv'){document.querySelectorAll('[data-k]').forEach(i=>CFG[i.dataset.k]=i.value);return api('/settings',{method:'POST',body:JSON.stringify(CFG)}).then(()=>alert('Saved')).catch(e=>alert(e.message))}
 if(t.id=='ex'){const c=[['ID','Name','Phone','From','To','Pickup','Status'],...BK.map(b=>[b.id,b.name,b.phone,b.pickup,b.dropoff,b.date+' '+b.time,b.status])].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='bookings.csv';a.click();return}
 const tr=t.closest('tr[data-go]');if(tr&&!t.closest('button'))location.hash=tr.dataset.go;
@@ -104,5 +119,5 @@ $('#lf').onsubmit=async e=>{e.preventDefault();$('#err').textContent='';try{awai
 $('#fp').onclick=async e=>{e.preventDefault();if(!$('#em').value)return $('#err').textContent='Enter your email first.';await sendPasswordResetEmail(auth,$('#em').value).catch(()=>{});$('#err').style.color='#1c7a2f';$('#err').textContent='If the account exists, a reset email was sent.'};
 $('#lo').onclick=e=>{e.preventDefault();signOut(auth)};
 onAuthStateChanged(auth,u=>{$('#login').classList.toggle('hidden',!!u);$('#shell').classList.toggle('hidden',!u);if(u){$('#un').textContent=u.displayName||u.email;load();route()}});
-setInterval(()=>auth.currentUser&&load(),30000);
+setInterval(()=>auth.currentUser&&load(),10000);
 </script></body></html>

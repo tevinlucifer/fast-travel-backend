@@ -24,6 +24,9 @@ app.use(cors((req, cb) => {
 }));
 app.use(express.json());
 
+// Never serve server code, data or dependencies as static files
+app.use((req, res, next) => /^\/(data|node_modules|server\.js|package|\.)/i.test(req.path) ? res.status(404).end() : next());
+
 // Serve static frontend assets
 app.use(express.static(__dirname));
 
@@ -153,7 +156,13 @@ app.post('/api/settings', requireStaff, (req, res) => {
 // ---------------------------------------------------------------------------
 // BOOKINGS (website -> backoffice)
 // ---------------------------------------------------------------------------
-const bookingsStore = []; // NOTE: in-memory; resets whenever the server restarts. Move to a DB for production.
+// Simple JSON-file storage so bookings, drivers and fleet survive restarts
+// (on hosts with a temporary disk this still resets on redeploy; use a real DB there).
+const DB_FILE = path.join(__dirname, 'data', 'db.json');
+let db = { bookings: [], drivers: [], fleet: [] };
+try { db = { ...db, ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) }; } catch {}
+const saveDb = () => { try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('Save failed:', e.message); } };
+const bookingsStore = db.bookings;
 const rateLimit = new Map(); // ip -> [timestamps]
 
 const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc';
@@ -225,6 +234,7 @@ app.post('/api/bookings', (req, res) => {
     }
 
     bookingsStore.unshift(booking);
+    saveDb();
     console.log('[BOOKING] New booking', booking.id, booking.name);
 
     // Optional: notify the owner by email
@@ -262,6 +272,7 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   if (driver !== undefined) b.driver = clean(driver, 60);
   if (vehicle !== undefined) b.vehicle = clean(vehicle, 60);
   if (reason !== undefined) b.reason = clean(reason, 200);
+  saveDb();
 
   // Email the customer when a request is accepted or declined
   if (['Accepted', 'Rejected'].includes(status) && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
@@ -275,6 +286,41 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
     }).catch(e => console.error('Customer email failed:', e.message));
   }
   res.status(200).json({ success: true, booking: b });
+});
+
+// DRIVERS (staff only)
+app.get('/api/drivers', requireStaff, (req, res) => res.json({ success: true, drivers: db.drivers }));
+app.post('/api/drivers', requireStaff, (req, res) => {
+  const name = clean(req.body?.name, 80);
+  if (!name) return res.status(400).json({ success: false, message: 'Driver name is required.' });
+  const d = { id: 'DR-' + Date.now().toString(36).toUpperCase(), name, phone: clean(req.body?.phone, 40), available: true, updatedAt: new Date().toISOString() };
+  db.drivers.push(d); saveDb();
+  res.status(201).json({ success: true, driver: d });
+});
+app.patch('/api/drivers/:id', requireStaff, (req, res) => {
+  const d = db.drivers.find(x => x.id === req.params.id);
+  if (!d) return res.status(404).json({ success: false, message: 'Driver not found.' });
+  if (typeof req.body?.available === 'boolean') { d.available = req.body.available; d.updatedAt = new Date().toISOString(); }
+  saveDb();
+  res.json({ success: true, driver: d });
+});
+app.delete('/api/drivers/:id', requireStaff, (req, res) => {
+  db.drivers = db.drivers.filter(x => x.id !== req.params.id); saveDb();
+  res.json({ success: true });
+});
+
+// FLEET (staff only)
+app.get('/api/fleet', requireStaff, (req, res) => res.json({ success: true, fleet: db.fleet }));
+app.post('/api/fleet', requireStaff, (req, res) => {
+  const name = clean(req.body?.name, 80);
+  if (!name) return res.status(400).json({ success: false, message: 'Vehicle name is required.' });
+  const v = { id: 'VH-' + Date.now().toString(36).toUpperCase(), name, type: clean(req.body?.type, 30) || 'Sedan', plate: clean(req.body?.plate, 20) };
+  db.fleet.push(v); saveDb();
+  res.status(201).json({ success: true, vehicle: v });
+});
+app.delete('/api/fleet/:id', requireStaff, (req, res) => {
+  db.fleet = db.fleet.filter(x => x.id !== req.params.id); saveDb();
+  res.json({ success: true });
 });
 
 // Fallback Route for Single Page Application (index.html, or index_9.html if that is your file name)
