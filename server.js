@@ -11,11 +11,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middleware
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ||
-  'https://fast-travel-1.vercel.app,https://tlucifer-backend-new.onrender.com,http://localhost:3000')
-  .split(',').map(s => s.trim());
-app.use(cors({
-  origin: (origin, cb) => (!origin || ALLOWED_ORIGINS.includes(origin)) ? cb(null, true) : cb(new Error('Not allowed by CORS')),
+// Origins allowed to call the API from another site (the public website).
+// Set ALLOWED_ORIGINS in your environment as a comma-separated list.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://fast-travel-1.vercel.app,http://localhost:3000')
+  .split(',').map(s => s.trim()).filter(Boolean);
+
+app.use(cors((req, cb) => {
+  const origin = req.headers.origin;
+  let sameOrigin = false;
+  try { sameOrigin = !!origin && new URL(origin).host === req.headers.host; } catch {}
+  cb(null, { origin: !origin || sameOrigin || ALLOWED_ORIGINS.includes(origin) });
 }));
 app.use(express.json());
 
@@ -132,7 +137,7 @@ app.get('/api/settings', (req, res) => {
 });
 
 // API Endpoint: Update System Settings
-app.post('/api/settings', (req, res) => {
+app.post('/api/settings', requireStaff, (req, res) => {
   try {
     const newSettings = req.body;
     settingsStore = { ...settingsStore, ...newSettings };
@@ -148,7 +153,7 @@ app.post('/api/settings', (req, res) => {
 // ---------------------------------------------------------------------------
 // BOOKINGS (website -> backoffice)
 // ---------------------------------------------------------------------------
-const bookingsStore = []; // NOTE: in-memory; resets when Render restarts. Move to a DB for production.
+const bookingsStore = []; // NOTE: in-memory; resets whenever the server restarts. Move to a DB for production.
 const rateLimit = new Map(); // ip -> [timestamps]
 
 const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc';
@@ -204,6 +209,10 @@ app.post('/api/bookings', (req, res) => {
       passengers: Math.min(Math.max(parseInt(b.passengers, 10) || 1, 1), 50),
       requests: clean(b.requests, 1000),
       vehicle: clean(b.vehicle, 60),
+      type: clean(b.type, 40),
+      fare: Math.max(0, Number(b.fare) || 0),
+      driver: '',
+      reason: '',
     };
 
     const missing = ['pickup', 'dropoff', 'date', 'time', 'name', 'email', 'phone', 'nationality']
@@ -243,15 +252,32 @@ app.get('/api/bookings', requireStaff, (req, res) => {
 app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   const b = bookingsStore.find(x => x.id === req.params.id);
   if (!b) return res.status(404).json({ success: false, message: 'Booking not found.' });
-  const allowed = ['New', 'Confirmed', 'Completed', 'Cancelled'];
-  if (!allowed.includes(req.body?.status)) {
-    return res.status(400).json({ success: false, message: 'Invalid status.' });
+  const { status, driver, vehicle, reason } = req.body || {};
+  if (status !== undefined) {
+    if (!['New', 'Accepted', 'Rejected', 'Completed', 'Cancelled'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status.' });
+    }
+    b.status = status;
   }
-  b.status = req.body.status;
+  if (driver !== undefined) b.driver = clean(driver, 60);
+  if (vehicle !== undefined) b.vehicle = clean(vehicle, 60);
+  if (reason !== undefined) b.reason = clean(reason, 200);
+
+  // Email the customer when a request is accepted or declined
+  if (['Accepted', 'Rejected'].includes(status) && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    transporter.sendMail({
+      from: `"Lanka Rides" <${process.env.EMAIL_USER}>`,
+      to: b.email,
+      subject: `Your booking ${b.id} was ${status.toLowerCase()}`,
+      text: status === 'Accepted'
+        ? `Hi ${b.name}, your trip ${b.pickup} to ${b.dropoff} on ${b.date} ${b.time} is confirmed.`
+        : `Hi ${b.name}, sorry, we could not accept booking ${b.id}. Reason: ${b.reason || 'not specified'}.`,
+    }).catch(e => console.error('Customer email failed:', e.message));
+  }
   res.status(200).json({ success: true, booking: b });
 });
 
-// Fallback Route for Single Page Application updated to index_6.html
+// Fallback Route for Single Page Application (index.html, or index_9.html if that is your file name)
 app.get(/(.*)/, (req, res) => {
   const page = fs.existsSync(path.join(__dirname, 'index.html')) ? 'index.html' : 'index_9.html';
   res.sendFile(path.join(__dirname, page));
