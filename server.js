@@ -289,18 +289,43 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
 });
 
 // DRIVERS (staff only)
+const DRIVER_STATUS = ['Available', 'Unavailable', 'On trip'];
+const driverFields = (src) => ({
+  firstName: clean(src.firstName, 60), lastName: clean(src.lastName, 60), phone: clean(src.phone, 30),
+  email: clean(src.email, 120), nic: clean(src.nic, 20), license: clean(src.license, 30),
+  address: clean(src.address, 200), city: clean(src.city, 40),
+});
+// Upgrade drivers saved by the earlier version (available: true/false)
+db.drivers.forEach(d => {
+  if (!d.status) d.status = d.available ? 'Available' : 'Unavailable';
+  if (d.firstName === undefined) { const [f, ...r] = (d.name || '').split(' '); d.firstName = f || ''; d.lastName = r.join(' '); }
+});
+
 app.get('/api/drivers', requireStaff, (req, res) => res.json({ success: true, drivers: db.drivers }));
 app.post('/api/drivers', requireStaff, (req, res) => {
-  const name = clean(req.body?.name, 80);
-  if (!name) return res.status(400).json({ success: false, message: 'Driver name is required.' });
-  const d = { id: 'DR-' + Date.now().toString(36).toUpperCase(), name, phone: clean(req.body?.phone, 40), available: true, updatedAt: new Date().toISOString() };
+  const f = driverFields(req.body || {});
+  if (!f.firstName || !f.phone) return res.status(400).json({ success: false, message: 'First name and phone number are required.' });
+  if (f.email && !/^\S+@\S+\.\S+$/.test(f.email)) return res.status(400).json({ success: false, message: 'Invalid email address.' });
+  const status = DRIVER_STATUS.includes(req.body?.status) ? req.body.status : 'Available';
+  const d = { id: 'DR-' + Date.now().toString(36).toUpperCase(), ...f, name: `${f.firstName} ${f.lastName}`.trim(), status, updatedAt: new Date().toISOString() };
   db.drivers.push(d); saveDb();
   res.status(201).json({ success: true, driver: d });
 });
 app.patch('/api/drivers/:id', requireStaff, (req, res) => {
   const d = db.drivers.find(x => x.id === req.params.id);
   if (!d) return res.status(404).json({ success: false, message: 'Driver not found.' });
-  if (typeof req.body?.available === 'boolean') { d.available = req.body.available; d.updatedAt = new Date().toISOString(); }
+  const body = req.body || {};
+  if (body.status !== undefined) {
+    if (!DRIVER_STATUS.includes(body.status)) return res.status(400).json({ success: false, message: 'Invalid status.' });
+    if (body.status !== d.status) d.updatedAt = new Date().toISOString();
+    d.status = body.status;
+  }
+  if (body.firstName !== undefined) {
+    const f = driverFields({ ...d, ...body });
+    if (!f.firstName || !f.phone) return res.status(400).json({ success: false, message: 'First name and phone number are required.' });
+    if (f.email && !/^\S+@\S+\.\S+$/.test(f.email)) return res.status(400).json({ success: false, message: 'Invalid email address.' });
+    Object.assign(d, f, { name: `${f.firstName} ${f.lastName}`.trim() });
+  }
   saveDb();
   res.json({ success: true, driver: d });
 });
