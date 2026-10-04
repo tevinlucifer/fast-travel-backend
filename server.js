@@ -45,6 +45,7 @@ let settingsStore = {
   colors: 'Natural',
   fontSize: 'Default',
   displaySize: 'Default',
+  categories: { Sedan: true, KDH: true, Hatchback: true }, // shown on the public website
 };
 
 // Configure Nodemailer Transporter
@@ -144,6 +145,7 @@ app.post('/api/settings', requireStaff, (req, res) => {
   try {
     const newSettings = req.body;
     settingsStore = { ...settingsStore, ...newSettings };
+    db.settings = settingsStore; saveDb();
     console.log('[SETTINGS DEBUG] Updated settings:', settingsStore);
     return res.status(200).json({ success: true, settings: settingsStore, message: 'Settings updated successfully.' });
   } catch (err) {
@@ -163,6 +165,7 @@ let db = { bookings: [], drivers: [], fleet: [] };
 try { db = { ...db, ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) }; } catch {}
 const saveDb = () => { try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('Save failed:', e.message); } };
 const bookingsStore = db.bookings;
+settingsStore = { ...settingsStore, ...(db.settings || {}) }; // restore saved settings
 const rateLimit = new Map(); // ip -> [timestamps]
 
 const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc';
@@ -229,6 +232,9 @@ app.post('/api/bookings', (req, res) => {
     if (missing.length) {
       return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
     }
+    if (booking.type && settingsStore.categories?.[booking.type] === false) {
+      return res.status(400).json({ success: false, message: `Sorry, ${booking.type} is currently unavailable.` });
+    }
     if (!/^\S+@\S+\.\S+$/.test(booking.email)) {
       return res.status(400).json({ success: false, message: 'Invalid email address.' });
     }
@@ -286,6 +292,12 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
     }).catch(e => console.error('Customer email failed:', e.message));
   }
   res.status(200).json({ success: true, booking: b });
+});
+
+// PUBLIC: which vehicle categories are currently enabled (read by the website)
+app.get('/api/categories', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ success: true, categories: { Sedan: true, KDH: true, Hatchback: true, ...(settingsStore.categories || {}) } });
 });
 
 // DRIVERS (staff only)
