@@ -1,36 +1,42 @@
-// Add to the LankaRides website (fast-travel-1.vercel.app) booking form script.
-// Set BACKOFFICE_URL to wherever you host the backoffice (server.js), e.g. 'https://backoffice.example.com'
-// and add that website origin to ALLOWED_ORIGINS on the backoffice.
+// Add to the LankaRides website. Shows which vehicle categories are enabled in the back office.
+// Uses the same BACKOFFICE_URL as the booking form code.
 const BACKOFFICE_URL = 'https://YOUR-BACKOFFICE-HOST';
+const CATEGORIES = { Sedan: /sedan/i, KDH: /kdh/i, Hatchback: /hatchback/i };
 
-const form = document.querySelector('#booking form, #booking-form');
-form?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = form.querySelector('button[type="submit"]');
-  const fd = Object.fromEntries(new FormData(form).entries());
-
-  // Map your form's field names -> API fields (edit the right-hand side)
-  const payload = {
-    pickup: fd.pickup, dropoff: fd.dropoff, date: fd.date, time: fd.time,
-    name: fd.name, email: fd.email, phone: fd.phone, nationality: fd.nationality,
-    passengers: fd.passengers, requests: fd.requests,
-    website: fd.website || '', // hidden honeypot field, leave empty
-  };
-
-  if (btn) btn.disabled = true;
+async function applyCategoryAvailability() {
+  let cats;
   try {
-    const res = await fetch(`${BACKOFFICE_URL}/api/bookings`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+    const r = await fetch(`${BACKOFFICE_URL}/api/categories`, { cache: 'no-store' });
+    cats = (await r.json()).categories;
+  } catch { return; } // back office offline: leave the site as it is
+
+  for (const [name, pattern] of Object.entries(CATEGORIES)) {
+    const enabled = cats[name] !== false;
+
+    // 1) Fleet cards: find the card by its heading text (Sedan Cars / KDH / Hatchback)
+    document.querySelectorAll('h2, h3, h4').forEach((h) => {
+      if (!pattern.test(h.textContent) || h.textContent.length > 25) return;
+      const card = h.closest('article, .card, [class*="card"]') || h.parentElement;
+      card.style.opacity = enabled ? '' : '.45';
+      card.style.filter = enabled ? '' : 'grayscale(1)';
+      card.querySelector('.cat-badge')?.remove();
+      if (!enabled) {
+        const b = document.createElement('div');
+        b.className = 'cat-badge';
+        b.textContent = 'Currently unavailable';
+        b.style.cssText = 'margin-top:10px;font-weight:700;color:#e8484d';
+        card.appendChild(b);
+      }
     });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.message || 'Booking failed.');
-    alert(`Thank you! Your booking ${data.id} was received. We'll confirm by email.`);
-    form.reset();
-  } catch (err) {
-    alert('Sorry, we could not send your booking: ' + err.message);
-  } finally {
-    if (btn) btn.disabled = false;
+
+    // 2) Booking form: disable the matching vehicle option (if the form has one)
+    document.querySelectorAll('select option').forEach((o) => {
+      if (!pattern.test(o.textContent)) return;
+      o.disabled = !enabled;
+      o.textContent = o.textContent.replace(/ \(unavailable\)$/, '') + (enabled ? '' : ' (unavailable)');
+    });
   }
-});
+}
+
+applyCategoryAvailability();
+setInterval(applyCategoryAvailability, 60000); // refresh every minute
