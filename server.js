@@ -161,7 +161,7 @@ app.post('/api/settings', requireStaff, (req, res) => {
 // Simple JSON-file storage so bookings, drivers and fleet survive restarts
 // (on hosts with a temporary disk this still resets on redeploy; use a real DB there).
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
-let db = { bookings: [], drivers: [], fleet: [] };
+let db = { bookings: [], drivers: [], fleet: [], users: [] };
 try { db = { ...db, ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) }; } catch {}
 const saveDb = () => { try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('Save failed:', e.message); } };
 const bookingsStore = db.bookings;
@@ -347,16 +347,73 @@ app.delete('/api/drivers/:id', requireStaff, (req, res) => {
 });
 
 // FLEET (staff only)
+const VEHICLE_TYPES = ['Sedan', 'KDH', 'Hatchback'];
+const vehicleFields = (src) => ({
+  name: clean(src.name, 80), model: clean(src.model, 80), plate: clean(src.plate, 20).toUpperCase(),
+  type: VEHICLE_TYPES.includes(src.type) ? src.type : '', color: clean(src.color, 30),
+  seats: Math.min(Math.max(parseInt(src.seats, 10) || 0, 0), 60), ac: src.ac === 'Non A/C' ? 'Non A/C' : 'A/C',
+});
+const vehicleError = (f) => {
+  const miss = [['name', 'Vehicle name'], ['model', 'Vehicle model'], ['plate', 'Number plate'], ['type', 'Vehicle type']].filter(([k]) => !f[k]).map(([, l]) => l);
+  return miss.length ? `${miss.join(', ')} ${miss.length > 1 ? 'are' : 'is'} required.` : '';
+};
 app.get('/api/fleet', requireStaff, (req, res) => res.json({ success: true, fleet: db.fleet }));
 app.post('/api/fleet', requireStaff, (req, res) => {
-  const name = clean(req.body?.name, 80);
-  if (!name) return res.status(400).json({ success: false, message: 'Vehicle name is required.' });
-  const v = { id: 'VH-' + Date.now().toString(36).toUpperCase(), name, type: clean(req.body?.type, 30) || 'Sedan', plate: clean(req.body?.plate, 20) };
+  const f = vehicleFields(req.body || {});
+  const err = vehicleError(f);
+  if (err) return res.status(400).json({ success: false, message: err });
+  const v = { id: 'VH-' + Date.now().toString(36).toUpperCase(), ...f };
   db.fleet.push(v); saveDb();
   res.status(201).json({ success: true, vehicle: v });
 });
+app.patch('/api/fleet/:id', requireStaff, (req, res) => {
+  const v = db.fleet.find(x => x.id === req.params.id);
+  if (!v) return res.status(404).json({ success: false, message: 'Vehicle not found.' });
+  const f = vehicleFields({ ...v, ...(req.body || {}) });
+  const err = vehicleError(f);
+  if (err) return res.status(400).json({ success: false, message: err });
+  Object.assign(v, f); saveDb();
+  res.json({ success: true, vehicle: v });
+});
 app.delete('/api/fleet/:id', requireStaff, (req, res) => {
   db.fleet = db.fleet.filter(x => x.id !== req.params.id); saveDb();
+  res.json({ success: true });
+});
+
+// USERS (staff only) - records who works in the system and their role.
+// NOTE: this does not create a Firebase login; add the person in Firebase Authentication too.
+const USER_ROLES = ['Owner', 'Dispatcher', 'Driver', 'Accountant'];
+const userFields = (src) => ({
+  name: clean(src.name, 80), email: clean(src.email, 120).toLowerCase(), phone: clean(src.phone, 30),
+  role: USER_ROLES.includes(src.role) ? src.role : '', status: src.status === 'Inactive' ? 'Inactive' : 'Active',
+});
+const userError = (f) => {
+  if (!f.name || !f.email || !f.role) return 'Full name, email and role are required.';
+  if (!/^\S+@\S+\.\S+$/.test(f.email)) return 'Invalid email address.';
+  return '';
+};
+app.get('/api/users', requireStaff, (req, res) => res.json({ success: true, users: db.users }));
+app.post('/api/users', requireStaff, (req, res) => {
+  const f = userFields(req.body || {});
+  const err = userError(f);
+  if (err) return res.status(400).json({ success: false, message: err });
+  if (db.users.some(u => u.email === f.email)) return res.status(400).json({ success: false, message: 'A user with this email already exists.' });
+  const u = { id: 'US-' + Date.now().toString(36).toUpperCase(), ...f, createdAt: new Date().toISOString() };
+  db.users.push(u); saveDb();
+  res.status(201).json({ success: true, user: u });
+});
+app.patch('/api/users/:id', requireStaff, (req, res) => {
+  const u = db.users.find(x => x.id === req.params.id);
+  if (!u) return res.status(404).json({ success: false, message: 'User not found.' });
+  const f = userFields({ ...u, ...(req.body || {}) });
+  const err = userError(f);
+  if (err) return res.status(400).json({ success: false, message: err });
+  if (db.users.some(x => x.id !== u.id && x.email === f.email)) return res.status(400).json({ success: false, message: 'A user with this email already exists.' });
+  Object.assign(u, f); saveDb();
+  res.json({ success: true, user: u });
+});
+app.delete('/api/users/:id', requireStaff, (req, res) => {
+  db.users = db.users.filter(x => x.id !== req.params.id); saveDb();
   res.json({ success: true });
 });
 
