@@ -1,42 +1,68 @@
-// Add to the LankaRides website. Shows which vehicle categories are enabled in the back office.
-// Uses the same BACKOFFICE_URL as the booking form code.
-const BACKOFFICE_URL = 'https://YOUR-BACKOFFICE-HOST';
-const CATEGORIES = { Sedan: /sedan/i, KDH: /kdh/i, Hatchback: /hatchback/i };
+// LankaRides website -> back office booking connector.
+// Add this file to the WEBSITE project and load it at the end of the page:
+//   <script src="website-booking.js"></script>
+// It finds your booking form by its "Confirm booking" button and matches each
+// field by its label / name / placeholder, so you do not need to rename anything.
+// NOTE: it replaces whatever the form does on submit today (the booking goes to the back office instead).
 
-async function applyCategoryAvailability() {
-  let cats;
-  try {
-    const r = await fetch(`${BACKOFFICE_URL}/api/categories`, { cache: 'no-store' });
-    cats = (await r.json()).categories;
-  } catch { return; } // back office offline: leave the site as it is
+const BACKOFFICE_URL = 'https://ideas-complications-recovered-salem.trycloudflare.com'; // no slash at the end
 
-  for (const [name, pattern] of Object.entries(CATEGORIES)) {
-    const enabled = cats[name] !== false;
+(() => {
+  const RULES = [ // [field, pattern] checked in this order
+    ['email', /e-?mail/], ['date', /date/], ['time', /time/], ['dropoff', /drop|destination/],
+    ['pickup', /pick|from/], ['phone', /phone|whatsapp|mobile|tel/], ['nationality', /national|country/],
+    ['passengers', /passenger|guests|people|seats/], ['requests', /request|message|note|comment/], ['name', /name/],
+  ];
 
-    // 1) Fleet cards: find the card by its heading text (Sedan Cars / KDH / Hatchback)
-    document.querySelectorAll('h2, h3, h4').forEach((h) => {
-      if (!pattern.test(h.textContent) || h.textContent.length > 25) return;
-      const card = h.closest('article, .card, [class*="card"]') || h.parentElement;
-      card.style.opacity = enabled ? '' : '.45';
-      card.style.filter = enabled ? '' : 'grayscale(1)';
-      card.querySelector('.cat-badge')?.remove();
-      if (!enabled) {
-        const b = document.createElement('div');
-        b.className = 'cat-badge';
-        b.textContent = 'Currently unavailable';
-        b.style.cssText = 'margin-top:10px;font-weight:700;color:#e8484d';
-        card.appendChild(b);
-      }
+  const labelOf = (el) =>
+    (el.labels?.[0]?.textContent || el.closest('label')?.textContent ||
+     el.closest('div')?.querySelector('label')?.textContent || '');
+
+  const fieldOf = (el) => {
+    if (el.type === 'email') return 'email';
+    if (el.type === 'tel') return 'phone';
+    if (el.type === 'date') return 'date';
+    if (el.type === 'time') return 'time';
+    if (el.tagName === 'TEXTAREA') return 'requests';
+    const s = [el.name, el.id, el.placeholder, labelOf(el)].join(' ').toLowerCase();
+    return (RULES.find(([, re]) => re.test(s)) || [])[0];
+  };
+
+  const isBookingForm = (f) =>
+    f.tagName === 'FORM' && /confirm booking/i.test(f.textContent) && f.querySelector('input[type="email"], input[name*="mail" i]');
+
+  document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!isBookingForm(form)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation(); // stop the old handler so the booking is not sent twice
+
+    const payload = { website: '' }; // "website" is a hidden spam trap; keep it empty
+    form.querySelectorAll('input, select, textarea').forEach((el) => {
+      if (['submit', 'button', 'hidden', 'checkbox', 'radio'].includes(el.type)) return;
+      const key = fieldOf(el);
+      if (key && !payload[key]) payload[key] = el.value;
     });
+    console.log('[LankaRides] sending booking', payload);
 
-    // 2) Booking form: disable the matching vehicle option (if the form has one)
-    document.querySelectorAll('select option').forEach((o) => {
-      if (!pattern.test(o.textContent)) return;
-      o.disabled = !enabled;
-      o.textContent = o.textContent.replace(/ \(unavailable\)$/, '') + (enabled ? '' : ' (unavailable)');
-    });
-  }
-}
-
-applyCategoryAvailability();
-setInterval(applyCategoryAvailability, 60000); // refresh every minute
+    const btn = form.querySelector('button[type="submit"], button:not([type])');
+    const label = btn?.textContent;
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+    try {
+      const res = await fetch(`${BACKOFFICE_URL}/api/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || `Booking failed (${res.status})`);
+      alert(`Thank you! Your booking ${data.id || ''} was received. We'll confirm availability and pricing by email.`);
+      form.reset();
+    } catch (err) {
+      console.error('[LankaRides] booking error', err);
+      alert('Sorry, we could not send your booking: ' + err.message);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = label; }
+    }
+  }, true); // capture phase: runs before the page's own handlers
+})();
