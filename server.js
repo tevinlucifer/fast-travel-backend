@@ -190,6 +190,7 @@ async function requireStaff(req, res, next) {
 }
 
 const clean = (v, max = 300) => String(v ?? '').trim().slice(0, max);
+const PAYMENT_TYPES = ['Cash', 'Card', 'Online transfer'];
 
 // PUBLIC: called by the website booking form
 app.post('/api/bookings', (req, res) => {
@@ -224,6 +225,8 @@ app.post('/api/bookings', (req, res) => {
       type: clean(b.type, 40),
       fare: Math.max(0, Number(b.fare) || 0),
       driver: '',
+      driverId: '',
+      payment: '',
       reason: '',
     };
 
@@ -268,7 +271,10 @@ app.get('/api/bookings', requireStaff, (req, res) => {
 app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   const b = bookingsStore.find(x => x.id === req.params.id);
   if (!b) return res.status(404).json({ success: false, message: 'Booking not found.' });
-  const { status, driver, vehicle, reason } = req.body || {};
+  const { status, driver, vehicle, reason, payment, driverId } = req.body || {};
+  if (payment !== undefined && payment !== '' && !PAYMENT_TYPES.includes(payment)) {
+    return res.status(400).json({ success: false, message: 'Invalid payment type.' });
+  }
   if (status !== undefined) {
     if (!['New', 'Accepted', 'Rejected', 'Completed', 'Cancelled'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status.' });
@@ -278,6 +284,8 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   if (driver !== undefined) b.driver = clean(driver, 60);
   if (vehicle !== undefined) b.vehicle = clean(vehicle, 60);
   if (reason !== undefined) b.reason = clean(reason, 200);
+  if (payment !== undefined) b.payment = payment;
+  if (driverId !== undefined) b.driverId = clean(driverId, 40);
   saveDb();
 
   // Email the customer when a request is accepted or declined
