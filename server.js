@@ -192,6 +192,150 @@ async function requireStaff(req, res, next) {
 const clean = (v, max = 300) => String(v ?? '').trim().slice(0, max);
 const PAYMENT_TYPES = ['Cash', 'Card', 'Online transfer'];
 
+// NOTIFY-START
+// ---------------------------------------------------------------------------
+// CUSTOMER NOTIFICATIONS (email, plus SMS when an SMS provider is configured)
+// ---------------------------------------------------------------------------
+// TEST MODE: while testing, every customer message is sent to the test email / phone below
+// instead of the real customer. When you are ready to go live, set NOTIFY_TEST_MODE=false.
+const NOTIFY_TEST_MODE = String(process.env.NOTIFY_TEST_MODE || 'true').toLowerCase() !== 'false';
+const TEST_EMAIL = process.env.NOTIFY_TEST_EMAIL || 'tevingampalage29@gmail.com';
+const TEST_PHONE = process.env.NOTIFY_TEST_PHONE || '+94754762056';
+// Contact details printed at the bottom of every email
+const COMPANY = {
+  name: 'Lanka Rides',
+  email: process.env.COMPANY_EMAIL || 'tevingampalage29@gmail.com',
+  phone: process.env.COMPANY_PHONE || '+94754762056',
+};
+
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// 0754762056 -> +94754762056
+const toE164 = (p) => {
+  const d = String(p || '').replace(/[^\d+]/g, '');
+  if (d.startsWith('+')) return d;
+  if (d.startsWith('00')) return '+' + d.slice(2);
+  if (d.startsWith('94')) return '+' + d;
+  if (d.startsWith('0')) return '+94' + d.slice(1);
+  return d ? '+' + d : '';
+};
+const niceDate = (s) => {
+  const d = new Date(s + 'T00:00:00');
+  return isNaN(d) ? s : d.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+};
+
+// SMS through Twilio (set TWILIO_SID, TWILIO_TOKEN and TWILIO_FROM). Without them the SMS is skipped.
+async function sendSms(to, body) {
+  const { TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM } = process.env;
+  if (!TWILIO_SID || !TWILIO_TOKEN || !TWILIO_FROM) {
+    console.log('[NOTIFY] SMS skipped (no SMS provider configured). Message would be:', body);
+    return;
+  }
+  if (!to) return;
+  const r = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Basic ' + Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64'),
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({ To: to, From: TWILIO_FROM, Body: body }),
+  });
+  if (!r.ok) throw new Error('SMS failed: ' + (await r.text()).slice(0, 200));
+  console.log('[NOTIFY] SMS sent to', to);
+}
+
+// Builds the subject, plain text, HTML and SMS for a customer message
+function buildMessage(b, kind, testFor) {
+  const first = (b.name || 'there').split(' ')[0];
+  const accepted = kind === 'accepted';
+  const rows = [
+    ['Booking reference', b.id],
+    ['Pick-up', b.pickup],
+    ['Drop-off', b.dropoff],
+    ['Date', niceDate(b.date)],
+    ['Time', b.time],
+    ['Passengers', b.passengers],
+  ];
+  if (accepted && b.vehicle) rows.push(['Vehicle', b.vehicle]);
+  if (accepted && b.driver) rows.push(['Driver', b.driver]);
+  if (accepted && Number(b.fare) > 0) rows.push(['Fare', 'LKR ' + Number(b.fare).toLocaleString('en-US')]);
+
+  const badge = accepted ? 'BOOKING CONFIRMED' : 'BOOKING UPDATE';
+  const color = accepted ? ['#d9f4de', '#1c7a2f'] : ['#fde0e0', '#b3262b'];
+  const heading = accepted ? 'Your booking has been confirmed' : 'We could not accept your booking';
+  const paras = accepted
+    ? [
+        'Thank you for choosing ' + COMPANY.name + '. We are pleased to confirm that your booking has been accepted.',
+        'Our team will contact you soon to confirm the final details of your trip. If anything changes before then, please reply to this email or call us.',
+      ]
+    : [
+        'Thank you for your interest in ' + COMPANY.name + '. Unfortunately we are unable to accept this booking' + (b.reason ? ' (' + b.reason + ')' : '') + '.',
+        'We apologise for the inconvenience. You are welcome to submit a new request for another date or vehicle, or contact us and we will gladly help.',
+      ];
+
+  const rowHtml = rows.map(([k, v]) =>
+    `<tr><td style="padding:11px 0;border-bottom:1px solid #e8edf5;color:#6b7794;font-size:14px;width:38%">${esc(k)}</td>` +
+    `<td style="padding:11px 0;border-bottom:1px solid #e8edf5;color:#0b1f4d;font-size:14px;font-weight:600">${esc(v)}</td></tr>`).join('');
+
+  const testNote = testFor
+    ? `<tr><td style="background:#fff4d6;color:#8a5a00;padding:10px 28px;font-size:12px">TEST MODE: this message was intended for ${esc(testFor)}.</td></tr>`
+    : '';
+
+  const html = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f1f5fb">
+<div style="padding:24px 12px;background:#f1f5fb;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden">
+<tr><td style="background:#0b1f4d;padding:22px 28px"><span style="color:#ffffff;font-size:21px;font-weight:700;letter-spacing:.02em">${esc(COMPANY.name)}</span></td></tr>
+${testNote}
+<tr><td style="padding:30px 28px 8px">
+<span style="display:inline-block;background:${color[0]};color:${color[1]};border-radius:20px;padding:5px 13px;font-size:12px;font-weight:700;letter-spacing:.05em">${badge}</span>
+<h1 style="margin:16px 0 14px;font-size:25px;line-height:1.25;color:#0b1f4d">${heading}</h1>
+<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#2b3652">Dear ${esc(first)},</p>
+${paras.map((p) => `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;color:#2b3652">${esc(p)}</p>`).join('')}
+</td></tr>
+<tr><td style="padding:8px 28px 6px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #0b1f4d">${rowHtml}</table></td></tr>
+<tr><td style="padding:22px 28px 8px"><div style="background:#f1f5fb;border-radius:10px;padding:16px 18px;font-size:14px;line-height:1.7;color:#2b3652">
+<b style="color:#0b1f4d">Need help?</b><br>
+Email: <a href="mailto:${esc(COMPANY.email)}" style="color:#1565e0;text-decoration:none">${esc(COMPANY.email)}</a><br>
+Phone: <a href="tel:${esc(COMPANY.phone)}" style="color:#1565e0;text-decoration:none">${esc(COMPANY.phone)}</a>
+</div></td></tr>
+<tr><td style="padding:22px 28px 28px;font-size:12px;line-height:1.6;color:#8a94ab">Kind regards,<br><b style="color:#0b1f4d">The ${esc(COMPANY.name)} team</b><br><br>This is an automated message about booking ${esc(b.id)}.</td></tr>
+</table></div></body></html>`;
+
+  const text = [
+    `Dear ${first},`, '', ...paras, '',
+    ...rows.map(([k, v]) => `${k}: ${v}`), '',
+    `Need help? Email ${COMPANY.email} or call ${COMPANY.phone}.`, '',
+    `Kind regards,`, `The ${COMPANY.name} team`,
+  ].join('\n');
+
+  const sms = accepted
+    ? `${COMPANY.name}: Hi ${first}, your booking ${b.id} (${b.pickup} to ${b.dropoff}, ${b.date} ${b.time}) is confirmed. We will contact you soon. Help: ${COMPANY.phone}`
+    : `${COMPANY.name}: Hi ${first}, sorry, we could not accept booking ${b.id}. Please contact ${COMPANY.phone} for help.`;
+
+  return {
+    subject: (testFor ? '[TEST] ' : '') + (accepted ? `Booking confirmed - ${b.id} | ${COMPANY.name}` : `Update on your booking ${b.id} | ${COMPANY.name}`),
+    html, text, sms,
+  };
+}
+
+// Sends the email (and SMS if configured). Never throws into the request: errors are logged.
+async function notifyCustomer(b, kind) {
+  const toEmail = NOTIFY_TEST_MODE ? TEST_EMAIL : b.email;
+  const toPhone = NOTIFY_TEST_MODE ? TEST_PHONE : toE164(b.phone);
+  const testFor = NOTIFY_TEST_MODE ? `${b.name} <${b.email}> / ${b.phone}` : '';
+  const m = buildMessage(b, kind, testFor);
+
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    try {
+      await transporter.sendMail({ from: `"${COMPANY.name}" <${process.env.EMAIL_USER}>`, to: toEmail, replyTo: COMPANY.email, subject: m.subject, text: m.text, html: m.html });
+      console.log(`[NOTIFY] ${kind} email sent to ${toEmail} for ${b.id}`);
+    } catch (e) { console.error('[NOTIFY] Email failed:', e.message); }
+  } else {
+    console.warn('[NOTIFY] Email NOT sent: set EMAIL_USER and EMAIL_PASS (Gmail app password) in the environment.');
+  }
+  try { await sendSms(toPhone, m.sms); } catch (e) { console.error('[NOTIFY]', e.message); }
+}
+// NOTIFY-END
+
 // PUBLIC: called by the website booking form
 app.post('/api/bookings', (req, res) => {
   try {
@@ -272,6 +416,7 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   const b = bookingsStore.find(x => x.id === req.params.id);
   if (!b) return res.status(404).json({ success: false, message: 'Booking not found.' });
   const { status, driver, vehicle, reason, payment, driverId } = req.body || {};
+  const prevStatus = b.status;
   if (payment !== undefined && payment !== '' && !PAYMENT_TYPES.includes(payment)) {
     return res.status(400).json({ success: false, message: 'Invalid payment type.' });
   }
@@ -288,16 +433,9 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   if (driverId !== undefined) b.driverId = clean(driverId, 40);
   saveDb();
 
-  // Email the customer when a request is accepted or declined
-  if (['Accepted', 'Rejected'].includes(status) && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    transporter.sendMail({
-      from: `"Lanka Rides" <${process.env.EMAIL_USER}>`,
-      to: b.email,
-      subject: `Your booking ${b.id} was ${status.toLowerCase()}`,
-      text: status === 'Accepted'
-        ? `Hi ${b.name}, your trip ${b.pickup} to ${b.dropoff} on ${b.date} ${b.time} is confirmed.`
-        : `Hi ${b.name}, sorry, we could not accept booking ${b.id}. Reason: ${b.reason || 'not specified'}.`,
-    }).catch(e => console.error('Customer email failed:', e.message));
+  // Tell the customer by email (and SMS) when a request is accepted or declined - only when the status changes
+  if (['Accepted', 'Rejected'].includes(status) && status !== prevStatus) {
+    notifyCustomer(b, status.toLowerCase()).catch(e => console.error('[NOTIFY] failed:', e.message));
   }
   res.status(200).json({ success: true, booking: b });
 });
