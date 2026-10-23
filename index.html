@@ -1,352 +1,955 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lanka Rides Back Office</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#c8e6fe;--ink:#0b1437;--mut:#5b6785;--bl:#1565e0;--ln:#b9c0ff;--card:#fff;--nav:#f5f5f5;--th:#cdd2ff;--odd:#f5f7ff;--pill:#111}
-[data-theme=dark]{--bg:#0b1220;--ink:#e8ecf8;--mut:#9aa6c4;--ln:#2f3b63;--card:#151e33;--nav:#141c2f;--th:#243056;--odd:#1a243c;--pill:#26325a}
-[data-theme=dark] .cd,[data-theme=dark] .st,[data-theme=dark] .tw{box-shadow:none}
-.tile.aqua{color:#0b1437}[data-theme=dark]{color-scheme:dark}input,select,textarea{color:var(--ink)}::placeholder{color:var(--mut);opacity:.85}option{background:var(--card);color:var(--ink)}
-.tsw{position:relative;width:78px;height:40px;border-radius:24px;border:1px solid #ffffffb0;cursor:pointer;flex:none;padding:0;display:grid;place-items:center;background:linear-gradient(135deg,#f6f7fa,#c6c9d4 55%,#e8eaf0);box-shadow:inset 0 1px 1px #fff,inset 0 -2px 4px #0002,0 2px 8px #0003,0 0 14px #fff9;transition:box-shadow .25s,transform .15s}
-.tsw:hover{box-shadow:inset 0 1px 1px #fff,inset 0 -2px 4px #0002,0 2px 8px #0003,0 0 24px #fff}.tsw:active{transform:scale(.96)}
-.tsw .ti{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#707584,#2a2d37);box-shadow:inset 0 2px 3px #000b,0 1px 0 #fffc;color:#eef1fa}
-.tsw svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.tsw .is{display:none}
-[data-theme=dark] .tsw{border-color:#ffffff24;background:linear-gradient(135deg,#3b3f4d,#1b1e27 55%,#2c303c);box-shadow:inset 0 1px 1px #ffffff30,inset 0 -2px 4px #0009,0 2px 8px #0009,0 0 16px #5b7cfa66}
-[data-theme=dark] .tsw:hover{box-shadow:inset 0 1px 1px #ffffff30,inset 0 -2px 4px #0009,0 2px 8px #0009,0 0 26px #7f9cff}
-[data-theme=dark] .tsw .ti{background:linear-gradient(145deg,#0d0f15,#2a2e3a);color:#ffd36b}[data-theme=dark] .tsw .is{display:block}[data-theme=dark] .tsw .im{display:none}
-.tsw.fx{position:fixed;top:18px;right:18px;z-index:9}
-.mo{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}.mb{background:var(--card);color:var(--ink);border-radius:22px;padding:26px;width:min(640px,100%);max-height:92vh;overflow:auto;box-shadow:0 20px 60px #0007}
-.mb h3{margin:6px 0 12px}.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-bottom:18px}.fg label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:5px}.fg label.w{grid-column:1/-1}.fg i{color:#e8484d;font-style:normal}.fg label>input,.fg label>select{width:100%}.fg{align-items:end}
-.ac{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}#merr{color:#e8484d;font-size:13px;margin-top:10px}
-.seg{display:flex;gap:10px}.seg label{flex:1}.seg input{display:none}.seg span{display:block;text-align:center;padding:10px;border:1px solid var(--ln);border-radius:30px;cursor:pointer;font-size:14px}
-.seg input:checked+span{color:#fff;border-color:transparent}.seg.nb input:checked+span{background:var(--bl)}.stAvailable input:checked+span{background:#3dba54}.stUnavailable input:checked+span{background:#e8484d}.stOntrip input:checked+span{background:#e0a800}
-.sb{display:inline-flex;gap:4px}.sb button{border:1px solid var(--ln);background:transparent;color:var(--mut);border-radius:20px;padding:4px 10px;font-size:12px;cursor:pointer}
-.sb button.on{color:#fff;border-color:transparent}.sb button.on.Available{background:#3dba54}.sb button.on.Unavailable{background:#e8484d}.sb button.on.Ontrip{background:#e0a800}
-@media(max-width:600px){.fg{grid-template-columns:1fr}.seg{flex-direction:column}}
-.sw{border:0;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;color:#fff}.sw.on{background:#3dba54}.sw.off{background:#e8484d}
-.af{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}.af input,.af select{width:auto;flex:1;min-width:150px}
-*{box-sizing:border-box;margin:0;font-family:Poppins,system-ui,sans-serif}
-body{background:var(--bg);color:var(--ink);min-height:100vh}.hidden{display:none!important}
-#login{display:grid;grid-template-columns:1fr 1fr;min-height:100vh;background:var(--card)}
-.lp{background:#5b7cfa;position:relative;overflow:hidden;color:#fff;padding:56px}
-.lp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;opacity:.6}
-.lp>*{position:relative}.lp h2{font-size:44px;margin-top:150px;line-height:1.1}.lp h2 span{font-weight:400}
-.logo{width:48px;height:48px;background:#e4e3df;color:#222;font:700 20px Georgia,serif;display:grid;place-items:center;border-radius:6px}
-.lf{display:flex;flex-direction:column;justify-content:center;padding:0 90px}.lf h1{color:#5b7cfa;font-size:40px}
-.lf label{font-weight:600;font-size:14px;margin:18px 0 6px}
-input,select{padding:12px 18px;border:1px solid var(--ln);border-radius:30px;font-size:14px;background:var(--card);width:100%}
-.btn{border:0;border-radius:30px;padding:12px 22px;font-weight:500;cursor:pointer;color:#fff;background:linear-gradient(#4a90ff,var(--bl));font-size:14px}
-.btn.o{background:var(--card);color:var(--bl);border:1px solid var(--ln)}.btn.g{background:#3dba54}.btn.r{background:#e8484d}.btn.s{padding:6px 14px;font-size:13px}
-#err{color:#c62828;font-size:13px;margin-top:10px}
-nav{margin:26px 40px 0;background:var(--nav);border-radius:40px;padding:12px 22px;display:flex;align-items:center;gap:10px}
-nav b{font-size:18px;margin:0 auto 0 12px}nav .logo{width:40px;height:40px;font-size:16px}
-nav a{background:var(--pill);color:#fff;border-radius:30px;padding:10px clamp(9px,1.05vw,20px);text-decoration:none;font-size:clamp(12px,.82vw + 1px,15px);white-space:nowrap}
-nav a.on{background:linear-gradient(#4a90ff,var(--bl))}nav span{font-size:12px;color:var(--mut);margin-left:18px;text-align:right}
-nav span b{display:block;color:var(--ink);font-size:14px;margin:0}
-main{padding:20px 40px 50px}h1.t{font-size:30px}.sub{color:var(--mut);font-size:14px;margin:2px 0 14px}
-.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
-.g{display:grid;gap:16px;margin-bottom:16px}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
-.st{background:var(--card);border-radius:20px;padding:16px 18px;box-shadow:0 6px 18px #0a3a7a22}.st small{color:var(--mut);font-size:12px;display:block}.st b{font-size:24px}
-.tile{display:block;color:#fff;text-decoration:none;border-radius:22px;padding:22px;min-height:120px;background:linear-gradient(#0a56d8,#4a96ff);cursor:pointer}
-.tile h3{font-size:24px}.tile p{font-size:13px;margin-top:34px;opacity:.9}.tile.green{background:linear-gradient(#2e9e41,#74d160)}.tile.red{background:linear-gradient(#cc3a40,#ee7075)}
-.tile.aqua{background:linear-gradient(135deg,#2db6dd,#e8f6ff);color:var(--ink)}.tile big{display:block;font-size:44px;font-weight:700;margin-top:40px}
-.cd{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 6px 18px #0a3a7a22;margin-bottom:16px}.cd h4{margin-bottom:8px}.cd p{font-size:14px;margin:8px 0}
-.tw{background:var(--card);border-radius:20px;overflow:auto;box-shadow:0 6px 18px #0a3a7a22;border:2px solid var(--ln)}
-table{width:100%;border-collapse:collapse;font-size:13px}th{background:var(--th);padding:12px 8px}td{padding:14px 8px;text-align:center;border:1px solid var(--ln)}
-tbody tr:nth-child(odd){background:var(--odd)}tr[data-go]{cursor:pointer}
-.bd{border-radius:20px;padding:3px 12px;font-size:12px;background:var(--card)3c4;color:#8a5a00;white-space:nowrap}
-.bd.ok{background:#d9f4de;color:#1c7a2f}.bd.no{background:#fde0e0;color:#b3262b}.bd.in{background:#e1e8ff;color:#2750c8}
-.bar{height:12px;border-radius:8px;background:linear-gradient(90deg,#2db6dd,#4a90ff)}.bars{display:flex;align-items:flex-end;gap:16px;height:200px}
-.bars div{flex:1;text-align:center;font-size:12px}.bars i{display:block;border-radius:10px 10px 0 0;background:linear-gradient(#4a90ff,#0a56d8)}
-.two{display:grid;grid-template-columns:2fr 1fr;gap:16px}.row{display:flex;justify-content:space-between;gap:10px}.fl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.set label{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:10px 0;gap:10px}.set input{width:110px;padding:8px 12px}
-@media(max-width:900px){#login{grid-template-columns:1fr}.lp{display:none}.lf{padding:40px}.g3,.g4,.g5,.two{grid-template-columns:1fr 1fr}nav{flex-wrap:wrap;margin:12px}main{padding:16px}}
-
-.hd>.fl{margin-bottom:16px}
-nav{flex-wrap:nowrap;row-gap:8px;position:relative;z-index:12}
-.bkb{width:40px;height:40px;border-radius:50%;border:1px solid #d3d5dd;cursor:pointer;flex:none;padding:0;display:grid;place-items:center;color:#6f7482;background:radial-gradient(circle at 50% 22%,#fff 0,#f4f4f7 55%,#d9dbe2 100%);box-shadow:0 3px 10px #0003,inset 0 -5px 8px #ffffffd0;transition:transform .15s,opacity .2s}
-.bkb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}.bkb:hover:not(:disabled){transform:scale(1.07)}.bkb:disabled{opacity:.35;cursor:default}
-[data-theme=dark] .bkb{border-color:#ffffff22;color:#dfe4f5;background:radial-gradient(circle at 50% 22%,#4a5066 0,#252a3a 55%,#12151f 100%);box-shadow:0 3px 10px #0009,inset 0 -5px 8px #00000066}
-#sbox{position:relative;flex:0 1 180px;min-width:130px}
-.sbx{display:flex;align-items:center;border:2px solid var(--ink);background:#e9e9ec;border-radius:30px;padding:2px 2px 2px 14px}
-[data-theme=dark] .sbx{background:var(--odd)}
-.sbx input{border:0;background:transparent;padding:6px 6px;border-radius:0;font-size:13px;outline:0;width:100%;min-width:0;color:var(--ink)}
-.sbx button{flex:none;width:30px;height:30px;border-radius:50%;border:0;background:var(--ink);color:var(--card);display:grid;place-items:center;cursor:pointer;padding:0}
-.sbx svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
-#qr{position:absolute;top:calc(100% + 8px);right:0;width:max(100%,320px);max-height:340px;overflow:auto;background:var(--card);border:1px solid var(--ln);border-radius:16px;box-shadow:0 14px 40px #0004;z-index:30}
-.si{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--ln);text-align:left}.si:last-child{border:0}.si:hover{background:var(--odd)}
-.si .k{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--bl)}.si .t1{font-size:14px;font-weight:600;color:var(--ink)}.si .t2{font-size:12px;color:var(--mut)}
-#nv{flex-wrap:nowrap;min-width:0}nav>b{white-space:nowrap}nav>span{white-space:nowrap;flex:none;margin-left:6px}nav>a#lo{flex:none}
-@media(max-width:1280px){nav>b{display:none}#nv{margin-left:auto}}
-@media(max-width:1000px){nav{flex-wrap:wrap}}
-
-/* ===== TravelPro-style redesign ===== */
-:root{--bg:#f1f5fb;--ink:#101a33;--mut:#6b7794;--bl:#2563eb;--ln:#e5eaf3;--card:#fff;--th:#f6f8fc;--odd:#fff;--side:#0b1f4d;--hov:#f3f6fd;--sh:0 1px 3px #0f1f4a0f}
-[data-theme=dark]{--bg:#0a1020;--ink:#e8ecf8;--mut:#93a0bf;--ln:#232e4d;--card:#121a30;--th:#18223c;--odd:#121a30;--side:#08132f;--hov:#18223c;--sh:none}
-*{font-family:Inter,Poppins,system-ui,sans-serif}
-#shell{display:flex;min-height:100vh}
-.side{width:236px;flex:none;background:var(--side);color:#fff;padding:22px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
-.brand{display:flex;align-items:center;gap:10px;padding:0 8px 26px;font-size:19px}
-.brand .logo{width:34px;height:34px;font-size:14px;border-radius:9px;background:var(--bl);color:#fff;font-family:inherit}
-#nv{display:flex;flex-direction:column;gap:4px;flex:1;overflow:auto}
-#nv a,.side .out{display:flex;align-items:center;gap:14px;padding:11px 14px;border-radius:10px;color:#c5cfe8;text-decoration:none;font-size:14px;font-weight:500;white-space:nowrap}
-.side svg,.ic svg,.ib svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
-#nv a:hover,.side .out:hover{background:#ffffff14;color:#fff}
-#nv a.on{background:var(--bl);color:#fff}
-.mn{flex:1;min-width:0}
-.top{display:flex;align-items:center;gap:12px;padding:16px 32px;position:relative;z-index:12}.sp{flex:1}
-#sbox{flex:1 1 auto;max-width:440px;min-width:150px}
-.sbx{border:1px solid var(--ln);background:var(--card);border-radius:12px;padding:3px 12px;box-shadow:var(--sh)}
-[data-theme=dark] .sbx{background:var(--card)}
-.sbx button{order:-1;background:none;color:var(--mut);width:26px;height:26px}
-.sbx input{padding:8px 8px;color:var(--ink)}
-#qr{left:0;right:auto;width:max(100%,340px);border-radius:12px}
-[data-theme] .tsw,[data-theme] .bkb,.ib{width:40px;height:40px;border-radius:50%;border:1px solid var(--ln);background:var(--card);box-shadow:var(--sh);color:var(--ink);display:grid;place-items:center;padding:0;position:relative;cursor:pointer;transition:none}
-[data-theme] .tsw:hover,[data-theme] .bkb:hover:not(:disabled){box-shadow:var(--sh);transform:none;background:var(--hov)}
-[data-theme] .tsw .ti{background:none;box-shadow:none;color:var(--ink)}[data-theme=dark] .tsw .ti{color:#ffd36b}
-.tsw.fx{position:fixed;top:18px;right:18px}
-.ib.dot::after{content:"";position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:#ef4444;border:2px solid var(--card)}
-.usr{display:flex;align-items:center;gap:10px;margin-left:6px}.usr small{display:block;color:var(--mut);font-size:12px}.usr b{display:block;font-size:14px}
-#av{width:38px;height:38px;border-radius:50%;background:var(--bl);color:#fff;display:grid;place-items:center;font:600 15px Inter,sans-serif;font-style:normal}
-main{padding:6px 32px 40px}h1.t{font-size:22px;font-weight:700}
-.st,.cd,.tw{border-radius:16px;box-shadow:var(--sh);border:1px solid var(--ln)}
-.st{padding:18px}.st b{font-size:24px;font-weight:700}
-.kp{display:flex;gap:14px;align-items:center;color:inherit;text-decoration:none}.kp small{font-size:13px}.kp em{display:block;font-style:normal;font-size:12px;color:var(--mut);margin-top:2px}
-.ic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none}.ic svg{width:22px;height:22px}
-.ic.b{background:#2563eb1f;color:#2563eb}.ic.g{background:#10b9811f;color:#059669}.ic.p{background:#8b5cf61f;color:#7c3aed}.ic.o{background:#f59e0b24;color:#d97706}
-.hero{position:relative;overflow:hidden;border-radius:16px;padding:32px;min-height:132px;color:#fff;background:linear-gradient(100deg,#0b2a6b,#1d5fd1 55%,#5fb7e8);margin-bottom:16px}
-.hero h2{font-size:22px;font-weight:700;position:relative}.hero p{font-size:14px;margin-top:8px;opacity:.92;position:relative}
-.hv{position:absolute;right:0;bottom:0;width:50%;height:100%}
-.dg{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start}.dg>div>.cd:last-child{margin-bottom:0}
-.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.ch h4{font-size:16px;margin:0}.ch a{font-size:13px;color:var(--bl);text-decoration:none;font-weight:500}
-.rw{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--ln);color:inherit;text-decoration:none}.rw:first-of-type{border-top:0}
-.rw .ic{width:40px;height:40px}.rw .ic svg{width:18px;height:18px}.rw>div{flex:1;min-width:0}.rw b{font-size:14px;display:block}.rw small{font-size:12px;color:var(--mut)}.rw .r2{text-align:right;flex:none}.rw .r2 span{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
-.ov{display:flex;align-items:center;gap:26px;padding:10px 4px;flex-wrap:wrap}
-.dn{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;flex:none}.dn>div{width:98px;height:98px;border-radius:50%;background:var(--card);display:grid;place-content:center;text-align:center}.dn b{font-size:26px;line-height:1}.dn small{font-size:12px;color:var(--mut)}
-.lg{flex:1;min-width:140px}.lg p{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:14px}.lg i{width:9px;height:9px;border-radius:50%;flex:none}.lg span{margin-left:auto;font-weight:600}
-.tile{background:var(--card);color:var(--ink);border:1px solid var(--ln);border-left:5px solid var(--bl);border-radius:16px;box-shadow:var(--sh);min-height:110px;padding:20px}
-.tile.green,.tile.red,.tile.aqua{background:var(--card);color:var(--ink)}.tile.green{border-left-color:#10b981}.tile.red{border-left-color:#ef4444}.tile.aqua{border-left-color:#06b6d4}
-.tile h3{font-size:18px}.tile p{margin-top:14px;color:var(--mut)}.tile big{margin-top:14px;font-size:38px}
-table{font-size:14px}th{background:var(--th);text-align:left;padding:12px 16px;color:var(--mut);font-weight:600;font-size:12px;white-space:nowrap}
-td{text-align:left;padding:14px 16px;border:0;border-top:1px solid var(--ln)}tbody tr:nth-child(odd){background:none}tr[data-go]:hover{background:var(--hov)}
-.tw{border-width:1px}
-.bd{background:#fff4d6;color:#9a6700;font-weight:500}[data-theme=dark] .bd{background:#f59e0b26;color:#fbbf24}
-.bd.ok{background:#d9f4de;color:#1c7a2f}.bd.no{background:#fde0e0;color:#b3262b}.bd.in{background:#e1e8ff;color:#2750c8}
-[data-theme=dark] .bd.ok{background:#10b98126;color:#34d399}[data-theme=dark] .bd.no{background:#ef444426;color:#f87171}[data-theme=dark] .bd.in{background:#2563eb33;color:#8fb2ff}
-.btn{background:var(--bl);border-radius:10px;font-weight:600}.btn.o{background:var(--card);color:var(--bl);border:1px solid var(--ln)}.btn.g{background:#10b981}.btn.r{background:#ef4444}
-input,select{border-radius:10px}.mb{border-radius:18px}.seg span{border-radius:10px}
-.bar{background:var(--bl)}.bars i{background:var(--bl)}
-.lp{background:linear-gradient(160deg,#0b1f4d,#2563eb)}.lf h1{color:var(--ink)}
-@media(max-width:900px){.side{width:68px;padding:18px 8px}.brand{padding:0 6px 22px}.brand b,#nv a span,.side .out span{display:none}#nv a,.side .out{justify-content:center;padding:12px 0}.top{padding:12px 16px}main{padding:6px 16px 30px}.dg{grid-template-columns:1fr}.usr>span{display:none}}
-@media(max-width:600px){.g3,.g4,.g5,.two{grid-template-columns:1fr}.hero{padding:22px}}
-
-/* ---- Reports: date filter, grouped rows, print ---- */
-.rf{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px;background:var(--card);border:1px solid var(--ln);border-radius:16px;box-shadow:var(--sh);padding:14px 16px;margin-bottom:16px}
-.rf label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--mut)}
-.rf input[type=date]{width:auto;border-radius:12px;padding:9px 12px;color:var(--ink)}
-.rfp{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
-.rfp .btn.on{background:var(--bl);color:#fff;border-color:var(--bl)}
-.rfe{width:100%;margin:0;color:#e8484d;font-size:13px}
-.rft{width:100%;margin:0;color:var(--mut);font-size:13px}
-tr.grp td{background:var(--th);font-weight:600}
-tr.tot td{font-weight:700;border-top:2px solid var(--ink)}
-@media print{
-html[data-theme]{--bg:#fff;--ink:#000;--card:#fff;--th:#eee;--odd:#fff;--ln:#ccc;--mut:#555}
-.side,header.top,.rf,.hd .fl{display:none!important}
-main{padding:0}.tw,.st{box-shadow:none}
-}
-
-/* ===== Soft-blue dashboard theme (matches reference) ===== */
-:root{--bg:#d3ddf1;--card:#c8d5ee;--ink:#0f1b3d;--mut:#56638a;--bl:#2a5fd4;--ln:#b4c4e4;--th:#aec2ec;--hov:#bccbea;--side:#c8d5ee;--inp:#dce5f5;--b1:#2685b8;--b2:#0d4287;--sh:8px 10px 22px #8499c480,-5px -5px 14px #ffffff40}
-[data-theme=dark]{--bg:#0a1226;--card:#121c38;--ink:#e8ecf8;--mut:#93a0bf;--ln:#243255;--th:#1b2a52;--hov:#1a2748;--side:#101a34;--inp:#0c1530;--b1:#13497f;--b2:#0a1f4d;--sh:8px 10px 22px #0007,-4px -4px 14px #ffffff08}
-#shell{background:linear-gradient(110deg,var(--b1),var(--b2)) top/100% 190px no-repeat,var(--bg)}
-.side{margin-top:50px;height:calc(100vh - 50px);top:50px;border-radius:28px 0 0 0;color:var(--ink);background:var(--side);box-shadow:var(--sh)}
-.brand b{color:var(--ink)}
-#nv a,.side .out{color:var(--mut)}
-#nv a:hover,.side .out:hover{background:var(--hov);color:var(--ink)}
-#nv a.on{background:var(--bl);color:#fff;box-shadow:0 6px 12px #2a5fd444}
-/* header on the gradient banner */
-.top .sbx{background:#ffffff14;border:1px solid #ffffffb0;border-radius:30px;box-shadow:none}
-.top .sbx input{color:#fff;background:transparent;border:0}.top .sbx input::placeholder{color:#ffffffcc}
-.top .sbx button{order:0;color:#fff}
-.top .tsw,.top .bkb,.top .ib{background:#ffffff1a;border:1px solid #ffffffb0;color:#fff;box-shadow:none}
-.top .tsw:hover,.top .bkb:hover:not(:disabled),.top .ib:hover{background:#ffffff33}
-.top .tsw .ti{color:#fff}[data-theme=dark] .top .tsw .ti{color:#ffd36b}
-.ib.dot::after{border-color:#2a74c0}
-.usr b{color:#fff}.usr small{color:#ffffffb8}#av{background:#ffffff2e;border:1px solid #fff9}
-.hd h1.t,.hero h2{color:#fff}.hd .sub{color:#ffffffd0}
-.hero{background:none;box-shadow:none;border-radius:0;padding:8px 0 22px;min-height:0;margin-bottom:6px}.hv{display:none}
-.hero p{color:#fff}
-/* soft cards with coloured bottom band */
-.cd,.tw,.rf,.mb{background:var(--card);border:0;border-radius:18px;box-shadow:var(--sh)}
-.st,.tile,.tile.green,.tile.red,.tile.aqua{--c:var(--bl);border:0;border-radius:18px;box-shadow:var(--sh);color:var(--ink);background:var(--card) linear-gradient(var(--c),var(--c)) bottom/100% 8px no-repeat}
-.st{padding-bottom:24px}
-.kp:has(.ic.g),.tile.green{--c:#34d399}.kp:has(.ic.p){--c:#8b5cf6}.kp:has(.ic.o),.tile.aqua{--c:#f5a524}.tile.red{--c:#ef4444}
-.st b,.tile big{color:var(--c)}
-th{background:var(--th);color:var(--ink);text-transform:uppercase;letter-spacing:.03em}
-tr.grp td{background:var(--th)}
-input,select,textarea{background:var(--inp);border:1px solid var(--ln);border-radius:12px}
-.btn{background:linear-gradient(#4a82e6,var(--bl));border-radius:12px;box-shadow:0 4px 10px #2a5fd433}
-.btn.o{background:var(--card);border:0;box-shadow:var(--sh)}
-.btn.g{background:linear-gradient(#34c06a,#0d9a6c);box-shadow:none}.btn.r{background:linear-gradient(#e85a5a,#cf3a3a);box-shadow:none}
-:root:not([data-theme=dark]) .bd.ok{background:#b5dfc0}:root:not([data-theme=dark]) .bd.no{background:#eec3c3}:root:not([data-theme=dark]) .bd.in{background:#c3cff2}:root:not([data-theme=dark]) .bd{background:#efdca8}
-.rfp .btn.on{background:var(--bl);color:#fff}
-.lp{background:linear-gradient(160deg,var(--b2),var(--b1))}
-@media print{#shell{background:#fff}.hd h1.t,.hd .sub{color:#000}.st,.cd,.tw,.rf{box-shadow:none;border:1px solid #ccc}}
-</style></head><body>
-<button class="tsw fx" aria-label="Switch light / dark mode" title="Light / dark mode"><span class="ti"><svg class="im" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="is" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span></button>
-<section id="login"><div class="lp"><div class="logo">TD</div><img src="images/hero-car.jpg" alt="">
-<p style="margin-top:130px">Lanka Rides back office</p><h2><b>Secure access.</b><br><span>Smarter control.</span></h2></div>
-<form class="lf" id="lf"><h1>Welcome back</h1><p class="sub">Sign in to manage bookings, fleet and payments.</p>
-<label>Email address</label><input id="em" type="email" placeholder="you@lankarides.com" required>
-<label>Password</label><input id="pw" type="password" required>
-<div class="row" style="margin:14px 0 20px;font-size:13px"><span></span><a href="#" id="fp" style="color:var(--bl);text-decoration:none">Forgot password?</a></div>
-<button class="btn" style="padding:16px">Log in</button><div id="err"></div>
-<p class="sub" style="text-align:center;margin-top:30px">Powered by TD World</p></form></section>
-<section id="shell" class="hidden"><aside class="side"><div class="brand"><div class="logo">TD</div><b>Lanka Rides</b></div><div id="nv"></div><a href="#" id="lo" class="out"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg><span>Log out</span></a></aside>
-<div class="mn"><header class="top"><button id="bk" class="bkb" aria-label="Go back" title="Back" disabled><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><div id="sbox"><div class="sbx"><input id="q" placeholder="Search bookings, drivers…" autocomplete="off" aria-label="Search"><button type="button" id="qb" aria-label="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div><div id="qr" class="hidden"></div></div><span class="sp"></span><button class="tsw" aria-label="Switch light / dark mode" title="Light / dark mode"><span class="ti"><svg class="im" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="is" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span></button><a class="ib" id="bell" href="#new" aria-label="New requests" title="New requests"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></a><span class="usr"><i id="av"></i><span><b id="un"></b><small>Back office</small></span></span></header><main id="app"></main></div></section>
-<script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import{getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-const auth=getAuth(initializeApp({apiKey:"AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc",authDomain:"tlucifer-auth.firebaseapp.com",projectId:"tlucifer-auth"}));
-const setTheme=t=>{document.documentElement.dataset.theme=t;localStorage.setItem("theme",t);document.querySelectorAll(".tsw").forEach(b=>b.setAttribute("aria-checked",t=="dark"))};
-setTheme(localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"));
-document.querySelectorAll(".tsw").forEach(b=>b.onclick=()=>setTheme(document.documentElement.dataset.theme=="dark"?"light":"dark"));
-const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const LKR=n=>n?'LKR '+Number(n).toLocaleString():'—';
-// When opened with Live Server / file://, talk to the Node server on port 3000
-const API=(['5500','5501'].includes(location.port)||location.protocol==='file:')?'http://localhost:3000':'';
-let BK=[],CFG={minNotice:3,maxDuration:14,buffer:30,grace:15,rateSedan:120,rateKDH:280,rateHatch:95};
-let FLEET=[],DR=[]; // loaded from the server
-let US=[];
-async function api(p,o={}){const t=await auth.currentUser.getIdToken();const r=await fetch(API+'/api'+p,{...o,headers:{'Content-Type':'application/json',Authorization:'Bearer '+t}});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success)throw new Error(d.message||'Request failed');return d}
-async function load(){try{[BK,DR,FLEET,US]=(await Promise.all([api('/bookings'),api('/drivers'),api('/fleet'),api('/users')])).map(r=>r.bookings||r.drivers||r.fleet||r.users);const s=await(await fetch(API+'/api/settings')).json();Object.assign(CFG,s.settings||{});route(true)}catch(e){console.warn(e)}}
-const T=(h,r)=>`<div class="tw"><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r||`<tr><td colspan="${h.length}">Nothing here yet</td></tr>`}</tbody></table></div>`;
-const bd=(t,c='')=>`<span class="bd ${c}">${E(t)}</span>`,when=b=>E(b.date+' · '+b.time);
-const by=s=>BK.filter(b=>b.status===s);
-const head=(t,s,x='')=>`<div class="hd"><div><h1 class="t">${t}</h1><p class="sub">${s}</p></div><div class="fl">${x}</div></div>`;
-const tile=(h,p,l,c='')=>`<a class="tile ${c}" href="#${l}"><h3>${h}</h3><p>${p}</p></a>`;
-const sv=p=>`<svg viewBox="0 0 24 24">${p}</svg>`,IC={dash:sv('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),bookings:sv('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>'),fleet:sv('<path d="M3 17v-4l2-6h14l2 6v4M3 13h18M6 17v2M18 17v2"/>'),drivers:sv('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'),reports:sv('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6"/>'),analytics:sv('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),users:sv('<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 4.5a3.5 3.5 0 0 1 0 7M22 20c0-2.5-1.5-4.3-4-5"/>'),settings:sv('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),inbox:sv('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>'),check:sv('<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>'),cash:sv('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>'),pct:sv('<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>')};
-// ---- Report helpers: date range, payment type, vehicle number, driver and customer IDs ----
-const RF={from:'',to:'',p:'all'};let EXP=null;
-const PAYS=['Cash','Card','Online transfer'];
-const RK={'Booking report':'report','Sales report':'sales','Payment mode summary':'paymode','Driver report':'driverrep','Customer report':'customer'};
-const pad2=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
-const RP={all:['All time',()=>['','']],today:['Today',()=>{const t=new Date();return[iso(t),iso(t)]}],last7:['Last 7 days',()=>{const t=new Date(),s=new Date();s.setDate(t.getDate()-6);return[iso(s),iso(t)]}],month:['This month',()=>{const t=new Date();return[iso(new Date(t.getFullYear(),t.getMonth(),1)),iso(t)]}],lmonth:['Last month',()=>{const t=new Date();return[iso(new Date(t.getFullYear(),t.getMonth()-1,1)),iso(new Date(t.getFullYear(),t.getMonth(),0))]}],year:['This year',()=>{const t=new Date();return[iso(new Date(t.getFullYear(),0,1)),iso(t)]}]};
-const fdt=s=>{const d=new Date(s+'T00:00:00');return isNaN(d)?E(s||'—'):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
-const rangeTxt=()=>!RF.from&&!RF.to?'Showing all dates':'Showing '+(RF.from?fdt(RF.from):'the start')+' to '+(RF.to?fdt(RF.to):'today');
-const inR=b=>(!RF.from||(b.date||'')>=RF.from)&&(!RF.to||(b.date||'')<=RF.to);
-const RFBAR=()=>`<div class="rf"><label>From<input type="date" id="rfF" value="${RF.from}"></label><label>To<input type="date" id="rfT" value="${RF.to}"></label><button class="btn s" id="rfA">Apply</button><div class="rfp">${Object.entries(RP).map(([k,v])=>`<button class="btn o s ${RF.p==k?'on':''}" data-rp="${k}">${v[0]}</button>`).join('')}</div><p class="rfe" id="rfE"></p><p class="rft">${rangeTxt()}</p></div>`;
-const RH=(t,s)=>head(t,s,'<button class="btn o" onclick="print()">Print</button><button class="btn" id="ex">Export</button>');
-const SB=x=>`<div class="st"><small>${x[0]}</small><b>${x[1]}</b></div>`;
-const trw=c=>`<tr>${c.map(x=>`<td>${x}</td>`).join('')}</tr>`,gtr=c=>`<tr class="grp">${c.map(x=>`<td>${x}</td>`).join('')}</tr>`;
-const payBd=p=>PAYS.includes(p)?bd(p,p=='Cash'?'ok':p=='Card'?'in':''):bd('Not set');
-const fareOf=b=>+b.fare||0;
-const plateOf=b=>{const v=b.vehicle||'',f=FLEET.find(x=>x.name+' · '+x.plate==v);return f?f.plate:(v.includes(' · ')?v.split(' · ').pop():'')||'—'};
-const drvId=b=>b.driverId||(DR.find(d=>d.name==b.driver)||{}).id||'—';
-const cn=s=>String(s||'').trim().replace(/\s+/g,' ').toLowerCase(),nice=s=>String(s||'').trim().replace(/\s+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-// Same first + last name = same customer. IDs are stable (based on each customer's first booking overall).
-const custMap=()=>{const m={};[...BK].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt)).forEach(b=>{const k=cn(b.name);if(k&&!m[k])m[k]='CUS-'+String(Object.keys(m).length+1).padStart(4,'0')});return m};
-// Sales-type reports use accepted and completed bookings inside the chosen dates
-const paid=()=>BK.filter(b=>(b.status=='Accepted'||b.status=='Completed')&&inR(b)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-function setRF(f,t,p){RF.from=f;RF.to=t;RF.p=p;route()}
-function applyRF(){const f=$('#rfF').value,t=$('#rfT').value;if(f&&t&&f>t)return $('#rfE').textContent='The start date must be before the end date.';setRF(f,t,'')}
-document.addEventListener('click',e=>{const t=e.target;if(t.dataset.rp){const r=RP[t.dataset.rp][1]();return setRF(r[0],r[1],t.dataset.rp)}if(t.id=='rfA')applyRF()});
-document.addEventListener('change',e=>{if(e.target.id=='rfF'||e.target.id=='rfT')applyRF()});
-const V={
-dash(){const n=by('New').length,a=by('Accepted'),rej=by('Rejected').length,rev=a.reduce((x,b)=>x+(+b.fare||0),0),dOn=DR.filter(d=>d.status=='Available').length,h=new Date().getHours(),nm=($('#un').textContent||'').split('@')[0],rate=a.length+rej?Math.round(100*a.length/(a.length+rej)):0,tot=BK.length,p1=n/(tot||1)*100,p2=p1+a.length/(tot||1)*100,p3=p2+rej/(tot||1)*100,
-rec=[...BK].sort((x,y)=>new Date(y.createdAt)-new Date(x.createdAt)).slice(0,5),
-kp=(i,c,l,v,sb,hr)=>`<a class="st kp" href="#${hr}"><span class="ic ${c}">${IC[i]}</span><div><small>${l}</small><b>${v}</b><em>${sb}</em></div></a>`,
-lg=(c,l,v)=>`<p><i style="background:${c}"></i>${l}<span>${v}</span></p>`,
-fr=(i,c,l,v,hr)=>`<a class="rw" href="#${hr}"><span class="ic ${c}">${IC[i]}</span><div><b>${l}</b></div><div class="r2"><span>${v}</span></div></a>`;
-return `<div class="hero"><svg class="hv" viewBox="0 0 300 130" preserveAspectRatio="none"><path d="M0 130V70l50-25 40 18 60-40 50 30 50-20 50 25v72z" fill="#fff" opacity=".16"/><path d="M0 130v-30l70-20 70 15 80-25 80 20v40z" fill="#fff" opacity=".26"/></svg><h2>Good ${h<12?'morning':h<18?'afternoon':'evening'}${nm?', '+E(nm):''}</h2><p>${n?`${n} new request${n>1?'s are':' is'} waiting for a decision.`:'No requests are waiting. You are all caught up.'}</p></div>
-<div class="g g4">${kp('inbox','b','New requests',n,'Waiting for a decision','new')}${kp('check','g','Accepted trips',a.length,'Confirmed bookings','accepted')}${kp('cash','p','Revenue',LKR(rev),'From accepted bookings','analytics')}${kp('pct','o','Acceptance rate',rate+'%','Accepted vs rejected','analytics')}</div>
-<div class="dg"><div class="cd"><div class="ch"><h4>Recent requests</h4><a href="#bookings">View all</a></div>${rec.map(b=>`<a class="rw" href="#booking/${E(b.id)}"><span class="ic b">${IC.fleet}</span><div><b>${E(b.pickup)} to ${E(b.dropoff)}</b><small>${E(b.name)} · ${when(b)}</small></div><div class="r2"><span>${LKR(b.fare)}</span>${bd(b.status,b.status=='Accepted'||b.status=='Completed'?'ok':b.status=='Rejected'?'no':'')}</div></a>`).join('')||'<p class="sub">No bookings yet. Requests from the website will appear here.</p>'}</div>
-<div><div class="cd"><div class="ch"><h4>Booking overview</h4></div><div class="ov"><div class="dn" style="background:conic-gradient(#f59e0b 0 ${p1}%,#10b981 ${p1}% ${p2}%,#ef4444 ${p2}% ${p3}%,#cbd5e1 ${p3}% 100%)"><div><b>${tot}</b><small>Total</small></div></div><div class="lg">${lg('#f59e0b','New',n)}${lg('#10b981','Accepted',a.length)}${lg('#ef4444','Rejected',rej)}${lg('#cbd5e1','Other',tot-n-a.length-rej)}</div></div></div>
-<div class="cd"><div class="ch"><h4>Fleet and team</h4></div>${fr('fleet','b','Vehicles',FLEET.length,'fleet')}${fr('drivers','g','Drivers available',dOn+' of '+DR.length,'drivers')}${fr('users','p','User accounts',US.length,'users')}</div></div></div>`},
-bookings(){const old=by('New').filter(b=>Date.now()-new Date(b.createdAt)>2*36e5);
-return head('Bookings','Review requests from the website and manage confirmed trips')+`<div class="g g3">${tile('New requests','<big>'+by('New').length+'</big>','new')}${tile('Accepted','<big>'+by('Accepted').length+'</big>','accepted','green')}${tile('Rejected','<big>'+by('Rejected').length+'</big>','rejected','red')}</div><div class="cd"><h4>Needs attention</h4>${old.map(b=>`<p>${bd('Waiting 2h+')} ${E(b.id)} ${E(b.name)} · ${E(b.pickup)} to ${E(b.dropoff)}</p>`).join('')||'<p>Nothing waiting.</p>'}</div>`},
-new(){return head('New requests',by('New').length+' waiting for a decision')+T(['Booking ID','Customer','Mobile','From','To','Type','Vehicle','Pickup','Fare','Action'],by('New').map(b=>`<tr data-go="booking/${E(b.id)}"><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.type||'—')}</td><td>${E(b.vehicle||'—')}</td><td>${when(b)}</td><td>${LKR(b.fare)}</td><td><button class="btn g s">Accept</button> <button class="btn r s" data-dec="${E(b.id)}">Decline</button></td></tr>`).join(''))},
-accepted(){return head('Accepted requests',by('Accepted').length+' confirmed trips')+T(['Booking ID','Customer','From','To','Vehicle','Pickup','Driver','Status'],by('Accepted').map(b=>`<tr data-go="booking/${E(b.id)}"><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle||'—')}</td><td>${when(b)}</td><td>${E(b.driver||'Not assigned')}</td><td>${b.driver?bd('Confirmed','ok'):bd('Assign driver')}</td></tr>`).join(''))},
-rejected(){return head('Rejected requests',by('Rejected').length+' declined')+T(['Booking ID','Customer','Mobile','From','To','Vehicle','Reason','Customer notified'],by('Rejected').map(b=>`<tr><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle||'—')}</td><td>${bd(b.reason||'—','no')}</td><td>Email sent</td></tr>`).join(''))},
-booking(id){const b=BK.find(x=>x.id==id);if(!b)return head('Not found','');const op=(a,v)=>a.map(x=>`<option ${x==v?'selected':''}>${E(x)}</option>`).join('');
-return head('Booking '+E(b.id),bd(b.status,b.status=='Accepted'?'ok':b.status=='Rejected'?'no':'')+' Received '+new Date(b.createdAt).toLocaleString()+' via website')+`<div class="two"><div class="cd"><h4>Trip</h4><p>${E(b.pickup)} → ${E(b.dropoff)} · ${when(b)}</p><p>Passengers ${E(b.passengers)} · Nationality ${E(b.nationality)}</p><p>Special request: ${E(b.requests||'none')}</p><hr><h4 style="margin-top:12px">Customer</h4><p>${E(b.name)} · ${E(b.phone)} · ${E(b.email)}</p><hr><h4 style="margin-top:12px">Fare</h4><div class="row"><p>${E(b.vehicle||b.type||'Vehicle not chosen')}</p><b>${LKR(b.fare)}</b></div></div>
-<div class="cd"><h4>Assign</h4><select id="dr"><option value="">Driver…</option>${op(DR.filter(d=>d.status=='Available'||d.name==b.driver).map(d=>d.name),b.driver)}</select><br><br><select id="ve"><option value="">Vehicle…</option>${op(FLEET.map(f=>f.name+' · '+f.plate),b.vehicle)}</select><br><br><select id="pm"><option value="">Payment type…</option>${op(PAYS,b.payment)}</select><br><br><button class="btn g" style="width:100%" data-acc="${E(b.id)}">Accept and notify</button><br><br><button class="btn r" style="width:100%" data-dec="${E(b.id)}">Decline with reason</button><br><br><button class="btn o" style="width:100%" data-sv="${E(b.id)}">Save driver, vehicle and payment</button></div></div>`},
-fleet(){const TL={Sedan:'Sedan Cars',KDH:'KDH',Hatchback:'Hatchback'};return head('Fleet',FLEET.length+' vehicles','<button class="btn" id="addVe">+ Add vehicle</button>')+T(['Vehicle','Type','Plate','Colour','Seats','A/C','Action'],FLEET.map(f=>`<tr><td>${E(f.name)}<br><small>${E(f.model||'')}</small></td><td>${E(TL[f.type]||f.type)}</td><td>${E(f.plate)}</td><td>${E(f.color||'—')}</td><td>${E(f.seats||'—')}</td><td>${E(f.ac||'—')}</td><td><button class="btn o s" data-edv="${E(f.id)}">Edit</button> <button class="btn r s" data-rmv="${E(f.id)}">Remove</button></td></tr>`).join(''))},
-drivers(){const c=s=>DR.filter(d=>d.status==s).length;return head('Drivers',DR.length+' registered · '+c('Available')+' available · '+c('Unavailable')+' unavailable · '+c('On trip')+' on trip','<button class="btn" id="addDr">+ Add driver</button>')+T(['Name','Phone','City','Licence','Availability','Since','Action'],DR.map(d=>`<tr><td>${E(d.name)}</td><td>${E(d.phone)}</td><td>${E(d.city||'—')}</td><td>${E(d.license||'—')}</td><td><div class="sb">${['Available','Unavailable','On trip'].map(s=>`<button class="${s.replace(' ','')} ${d.status==s?'on':''}" data-st="${s}" data-id="${E(d.id)}">${s}</button>`).join('')}</div></td><td>${new Date(d.updatedAt).toLocaleString()}</td><td><button class="btn o s" data-edd="${E(d.id)}">Edit</button> <button class="btn r s" data-rmd="${E(d.id)}">Remove</button></td></tr>`).join(''))},
-reports(){const L=[['Booking report','report'],['Sales report','sales'],['Payment mode summary','paymode'],['Cash and flow'],['Refund report'],['Driver report','driverrep'],['Vehicle utilisation'],['Customer report','customer']];return head('Reports','Choose a report, set a date range, then print or export')+`<div class="g g4">${L.map(x=>x[1]?tile(x[0],'Open ›',x[1],'aqua'):`<a class="tile aqua" onclick="alert('${x[0]}: coming soon')"><h3>${x[0]}</h3><p>Open ›</p></a>`).join('')}</div>`},
-report(){const R=BK.filter(inR),c=s=>R.filter(b=>b.status===s).length;EXP={name:'booking-report',head:['Booking ID','Customer','Mobile','From','To','Vehicle','Pickup','Status'],rows:R.map(b=>[b.id,b.name,b.phone,b.pickup,b.dropoff,b.vehicle||'',b.date+' '+b.time,b.status])};return RH('Booking report','All website bookings')+RFBAR()+`<div class="g g5">${[['Total bookings',R.length],['Accepted',c('Accepted')],['Rejected',c('Rejected')],['Cancelled',c('Cancelled')],['Completed',c('Completed')]].map(SB).join('')}</div>`+T(EXP.head,R.map(b=>`<tr><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle||'—')}</td><td>${when(b)}</td><td>${bd(b.status,b.status=='Accepted'||b.status=='Completed'?'ok':b.status=='Rejected'?'no':'')}</td></tr>`).join(''))},
-sales(){const r=paid(),tot=r.reduce((s,b)=>s+fareOf(b),0),sm=p=>r.filter(b=>b.payment==p).reduce((s,b)=>s+fareOf(b),0);EXP={name:'sales-report',head:['Booking ID','Date','Vehicle number','Cash / Card','Price'],rows:r.map(b=>[b.id,b.date,plateOf(b),b.payment||'',fareOf(b)])};return RH('Sales report','Accepted and completed bookings')+RFBAR()+`<div class="g g5">${[['Total sales',LKR(tot)],['Bookings',r.length],['Cash',LKR(sm('Cash'))],['Card',LKR(sm('Card'))],['Online transfer',LKR(sm('Online transfer'))]].map(SB).join('')}</div>`+T(EXP.head,r.length?r.map(b=>trw([E(b.id),fdt(b.date),E(plateOf(b)),payBd(b.payment),LKR(fareOf(b))])).join('')+`<tr class="tot"><td>Total</td><td></td><td></td><td></td><td>${LKR(tot)}</td></tr>`:'')},
-paymode(){const r=paid(),n=p=>r.filter(b=>b.payment==p).length;EXP={name:'payment-mode-summary',head:['Booking ID','Date','Payment type'],rows:r.map(b=>[b.id,b.date,b.payment||''])};return RH('Payment mode summary','Payment type for each accepted or completed booking')+RFBAR()+`<div class="g g4">${[['Card',n('Card')],['Cash',n('Cash')],['Online transfer',n('Online transfer')],['Not set',r.filter(b=>!PAYS.includes(b.payment)).length]].map(SB).join('')}</div>`+T(EXP.head,r.map(b=>trw([E(b.id),fdt(b.date),payBd(b.payment)])).join(''))},
-driverrep(){const r=paid().filter(b=>b.driver),g={};r.forEach(b=>{const id=drvId(b),k=id+'|'+b.driver;(g[k]=g[k]||{id:id,name:b.driver,t:[]}).t.push(b)});const L=Object.values(g).sort((a,b)=>String(a.id).localeCompare(String(b.id))),csv=[];let h='';L.forEach(d=>{const al=d.t.reduce((s,b)=>s+fareOf(b),0);h+=gtr([E(d.id),E(d.name),LKR(al),d.t.length+(d.t.length==1?' trip':' trips'),'','','']);d.t.forEach(b=>{h+=trw(['','','',LKR(fareOf(b)),E(b.pickup),E(b.dropoff),E(nice(b.name))]);csv.push([d.id,d.name,al,fareOf(b),b.pickup,b.dropoff,nice(b.name)])})});EXP={name:'driver-report',head:['Driver ID','Driver name','Allocated amount','Trip (amount)','From','To','Customer'],rows:csv};return RH('Driver report','Allocated amount and trips for each driver')+RFBAR()+`<div class="g g4">${[['Drivers',L.length],['Trips',r.length],['Total allocated',LKR(r.reduce((s,b)=>s+fareOf(b),0))]].map(SB).join('')}</div>`+T(EXP.head,h)},
-customer(){const m=custMap(),r=BK.filter(inR).sort((a,b)=>(a.date||'').localeCompare(b.date||'')),g={};r.forEach(b=>{const k=cn(b.name);if(!k)return;(g[k]=g[k]||{k:k,name:nice(b.name),t:[]}).t.push(b)});const L=Object.values(g).sort((a,b)=>m[a.k].localeCompare(m[b.k])),csv=[];let h='';L.forEach(c=>{h+=gtr([m[c.k],E(c.name),c.t.length,'','','','']);c.t.forEach(b=>{h+=trw(['','','',fdt(b.date),E(b.pickup),E(b.dropoff),E(b.driver||'—')]);csv.push([m[c.k],c.name,c.t.length,b.date,b.pickup,b.dropoff,b.driver||''])})});EXP={name:'customer-report',head:['Customer ID','Customer name','Trips requested','Date','From','To','Driver'],rows:csv};return RH('Customer report','Trips requested by each customer (same first and last name)')+RFBAR()+`<div class="g g4">${[['Customers',L.length],['Trips requested',r.length],['Repeat customers',L.filter(c=>c.t.length>1).length]].map(SB).join('')}</div>`+T(EXP.head,h)},
-analytics(){const m={};BK.forEach(b=>{const k=b.createdAt.slice(0,7);m[k]=(m[k]||0)+1});const ks=Object.keys(m).sort().slice(-6),mx=Math.max(1,...ks.map(k=>m[k])),d={};BK.forEach(b=>d[b.dropoff]=(d[b.dropoff]||0)+1);const td=Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0,5);
-return head('Analytics','Bookings from the website')+`<div class="g g4"><div class="st"><small>Bookings</small><b>${BK.length}</b></div><div class="st"><small>Revenue (accepted)</small><b>${LKR(by('Accepted').reduce((s,b)=>s+(+b.fare||0),0))}</b></div></div><div class="two"><div class="cd"><h4>Bookings per month</h4><div class="bars">${ks.map(k=>`<div><i style="height:${m[k]/mx*170}px"></i>${k.slice(5)}/${k.slice(2,4)} (${m[k]})</div>`).join('')||'No data yet'}</div></div><div class="cd"><h4>Top destinations</h4>${td.map(x=>`<p>${E(x[0])}<div class="bar" style="width:${x[1]/td[0][1]*100}%"></div></p>`).join('')}</div></div>`},
-settings(){const f=(k,l,u)=>`<label>${l}<input data-k="${k}" value="${E(CFG[k])}"></label>`;
-return head('Settings','Rules the website and back office follow',`<a class="btn o" href="#users" style="text-decoration:none">Users and roles</a><button class="btn" id="sv">Save changes</button>`)+`<div class="g g3 set"><div class="cd"><h4>Booking rules</h4>${f('minNotice','Minimum notice (hrs)')}${f('maxDuration','Maximum duration (days)')}${f('buffer','Buffer between trips (min)')}${f('grace','No-show grace (min)')}</div><div class="cd"><h4>Rates (LKR per km)</h4>${f('rateSedan','Sedan')}${f('rateKDH','KDH')}${f('rateHatch','Hatch')}<h4 style="margin-top:14px">Cancellation policy</h4><p>48 hrs or more ${bd('Free','ok')}</p><p>24 to 48 hrs ${bd('25% fee')}</p><p>Under 24 hrs ${bd('50% fee','no')}</p></div><div class="cd"><h4>Vehicle categories</h4><p class="sub">Applies instantly. Disabled categories show as unavailable on the website.</p>${['Sedan','KDH','Hatchback'].map(c=>{const on=(CFG.categories||{})[c]!==false;return `<div class="row" style="align-items:center;margin:12px 0"><span>${c}</span><button class="sw ${on?'on':'off'}" data-cat="${c}">${on?'Enabled':'Disabled'}</button></div>`}).join('')}</div></div>`},
-users(){return head('Users and roles',US.length+' accounts','<button class="btn" id="addUs">+ Add user</button>')+T(['Name','Email','Phone','Role','Status','Action'],US.map(u=>`<tr><td>${E(u.name)}</td><td>${E(u.email)}</td><td>${E(u.phone||'—')}</td><td>${bd(u.role,'in')}</td><td>${bd(u.status,u.status=='Active'?'ok':'no')}</td><td><button class="btn o s" data-edu="${E(u.id)}">Edit</button> <button class="btn r s" data-rmu="${E(u.id)}">Remove</button></td></tr>`).join(''))}};
-const NAV=[['Dashboard','dash'],['Bookings','bookings'],['Fleet','fleet'],['Drivers','drivers'],['Reports','reports'],['Analytics','analytics'],['Users','users'],['Settings','settings']],GRP={new:'bookings',accepted:'bookings',rejected:'bookings',booking:'bookings',report:'reports',sales:'reports',paymode:'reports',driverrep:'reports',customer:'reports'};
-function route(soft){if(!auth.currentUser)return;if(soft&&[...document.querySelectorAll('#app input,#app select')].some(i=>i.value!==i.defaultValue))return;let[r,a]=(location.hash.slice(1)||'dash').split('/');if(!V[r])r='dash';const on=GRP[r]||r;$('#q').placeholder='Search '+(SC[r]||SC.dash).t+'…';
-$('#nv').innerHTML=NAV.map(n=>`<a href="#${n[1]}" class="${n[1]==on?'on':''}" title="${n[0]}">${IC[n[1]]}<span>${n[0]}</span></a>`).join('');$('#bell').classList.toggle('dot',by('New').length>0);$('#app').innerHTML=V[r](a)}
-let STACK=[];
-const syncBack=()=>{$('#bk').disabled=STACK.length<2};
-addEventListener('hashchange',()=>{const h=location.hash||'#dash';if(STACK[STACK.length-2]===h)STACK.pop();else if(STACK[STACK.length-1]!==h)STACK.push(h);syncBack();$('#q').value='';$('#qr').classList.add('hidden');route()});
-$('#bk').onclick=()=>history.back();
-// Search: bookings, drivers and vehicles
-const SC={dash:{t:'dashboard',k:'',p:1},bookings:{t:'bookings',k:'b',p:1},new:{t:'new requests',k:'b',s:'New'},accepted:{t:'accepted trips',k:'b',s:'Accepted'},rejected:{t:'rejected requests',k:'b',s:'Rejected'},booking:{t:'bookings',k:'b'},report:{t:'bookings',k:'b'},sales:{t:'bookings',k:'b'},paymode:{t:'bookings',k:'b'},driverrep:{t:'drivers',k:'d'},customer:{t:'bookings',k:'b'},reports:{t:'reports',k:'r'},analytics:{t:'bookings',k:'b'},fleet:{t:'vehicles',k:'v'},drivers:{t:'drivers',k:'d'},users:{t:'users',k:'u'},settings:{t:'settings',k:'s'}};
-const TILES={dash:[['Bookings','New, accepted and rejected requests','bookings'],['New requests','Waiting for a decision','new'],['Accepted','Confirmed trips','accepted'],['Revenue','Accepted bookings total','analytics'],['Acceptance rate','Accepted vs rejected','analytics'],['Fleet','Vehicles','fleet'],['Vehicles available','Fleet size','fleet'],['Payments','Revenue and reports','reports'],['Reports','Booking report and more','reports'],['Analytics','Trends and revenue','analytics'],['Drivers','Availability and details','drivers'],['Drivers available','Live driver availability','drivers'],['Users','Accounts and roles','users'],['Settings','Rules, rates and vehicle categories','settings']],bookings:[['New requests','Waiting for a decision','new'],['Accepted','Confirmed trips','accepted'],['Rejected','Declined requests','rejected'],['Needs attention','Requests waiting over 2 hours','bookings']]};
-const SETS=[['minNotice','Minimum notice (hrs)'],['maxDuration','Maximum duration (days)'],['buffer','Buffer between trips (min)'],['grace','No-show grace (min)'],['rateSedan','Sedan rate per km'],['rateKDH','KDH rate per km'],['rateHatch','Hatch rate per km']],REPS=['Booking report','Sales report','Payment mode summary','Cash and flow','Refund report','Driver report','Vehicle utilisation','Customer report'];
-const curPage=()=>(location.hash.slice(1)||'dash').split('/')[0];
-function doSearch(){const q=$('#q').value.trim().toLowerCase(),box=$('#qr');if(!q){box.classList.add('hidden');return}
-const sc=SC[curPage()]||SC.dash,hit=(o,ks)=>ks.some(k=>String(o[k]||'').toLowerCase().includes(q)),r=[],has=c=>sc.k.includes(c);
-if(sc.p)(TILES[curPage()]||[]).filter(t=>(t[0]+' '+t[1]).toLowerCase().includes(q)).forEach(t=>r.push(['Section',t[0],t[1],t[2]]));
-if(has('b'))BK.filter(b=>(!sc.s||b.status===sc.s)&&hit(b,['id','name','phone','email','pickup','dropoff','status'])).slice(0,8).forEach(b=>r.push(['Booking',b.id+' · '+b.name,b.pickup+' → '+b.dropoff+' · '+b.status,'booking/'+b.id]));
-if(has('d'))DR.filter(d=>hit(d,['name','phone','city','license','nic','email','status'])).slice(0,8).forEach(d=>r.push(['Driver',d.name,d.phone+(d.city?' · '+d.city:'')+' · '+d.status,'drivers']));
-if(has('v'))FLEET.filter(f=>hit(f,['name','model','plate','type','color'])).slice(0,8).forEach(f=>r.push(['Vehicle',f.name,f.type+' · '+f.plate,'fleet']));
-if(has('u'))US.filter(u=>hit(u,['name','email','phone','role','status'])).forEach(u=>r.push(['User',u.name,u.email+' · '+u.role,'users']));
-if(has('s'))SETS.filter(s=>s[1].toLowerCase().includes(q)).forEach(s=>r.push(['Setting',s[1],'Click to edit','settings:'+s[0]]));
-if(has('r'))REPS.filter(s=>s.toLowerCase().includes(q)).forEach(s=>r.push(['Report',s,RK[s]?'Open report':'Coming soon',RK[s]||'reports']));
-box.innerHTML=r.length?r.map(x=>`<div class="si" data-sgo="${E(x[3])}"><div class="k">${x[0]}</div><div class="t1">${E(x[1])}</div><div class="t2">${E(x[2])}</div></div>`).join(''):'<div class="si"><div class="t2">Nothing found on this page</div></div>';box.classList.remove('hidden')}
-$('#q').addEventListener('input',doSearch);$('#q').addEventListener('focus',doSearch);
-$('#q').addEventListener('keydown',e=>{if(e.key=='Enter')document.querySelector('#qr .si[data-sgo]')?.click();if(e.key=='Escape'){e.target.value='';$('#qr').classList.add('hidden')}});
-$('#qb').onclick=()=>{$('#q').focus();doSearch()};
-document.addEventListener('click',e=>{const s=e.target.closest('.si[data-sgo]');if(s){const[p,k]=s.dataset.sgo.split(':');location.hash=p;if(k)setTimeout(()=>document.querySelector(`[data-k="${k}"]`)?.focus(),60);$('#q').value='';$('#qr').classList.add('hidden')}else if(!e.target.closest('#sbox'))$('#qr').classList.add('hidden')});
-const DIST=['Ampara','Anuradhapura','Badulla','Batticaloa','Colombo','Galle','Gampaha','Hambantota','Jaffna','Kalutara','Kandy','Kegalle','Kilinochchi','Kurunegala','Mannar','Matale','Matara','Monaragala','Mullaitivu','Nuwara Eliya','Polonnaruwa','Puttalam','Ratnapura','Trincomalee','Vavuniya'];
-function openForm(c){const d=c.data||{},m=document.createElement('div'),x=()=>{m.remove();removeEventListener('keydown',esc)},esc=e=>e.key=='Escape'&&x(),sg=c.seg;m.className='mo';
-const fld=f=>`<label${f.w?' class="w"':''}><span>${f.l}${f.r?' <i>*</i>':''}</span>${f.t=='select'?`<select id="f_${f.k}"><option value="">${f.ph||'Select'}</option>${f.o.map(o=>{const[a,b]=Array.isArray(o)?o:[o,o];return`<option value="${E(a)}" ${a==d[f.k]?'selected':''}>${E(b)}</option>`}).join('')}</select>`:`<input id="f_${f.k}" type="${f.t||'text'}" value="${E(d[f.k]??'')}">`}</label>`;
-m.innerHTML=`<div class="mb"><h3>${c.title}</h3><div class="fg">${c.fields.map(fld).join('')}</div>${sg?`<h3>${sg.title}</h3><div class="seg ${sg.nb?'nb':''}">${sg.o.map(o=>`<label class="${o[2]||''}"><input type="radio" name="f_seg" value="${E(o[0])}" ${(d[sg.k]||sg.def)==o[0]?'checked':''}><span>${o[1]||o[0]}</span></label>`).join('')}</div>`:''}<p id="merr"></p><div class="ac"><button class="btn o" id="mc">Cancel</button><button class="btn" id="ms">${c.save}</button></div></div>`;
-document.body.appendChild(m);addEventListener('keydown',esc);m.onclick=e=>{if(e.target==m||e.target.id=='mc')x()};
-m.querySelector('#ms').onclick=async()=>{const b={};c.fields.forEach(f=>b[f.k]=m.querySelector('#f_'+f.k).value.trim());if(sg)b[sg.k]=m.querySelector('[name=f_seg]:checked').value;
-const miss=c.fields.filter(f=>f.r&&!b[f.k]).map(f=>f.l);if(miss.length)return m.querySelector('#merr').textContent=miss.join(', ')+(miss.length>1?' are':' is')+' required.';
-try{await c.onSave(b);x();load()}catch(e){m.querySelector('#merr').textContent=e.message}};
-m.querySelector('input,select').focus()}
-const save=(p,id,b)=>api(id?p+'/'+id:p,{method:id?'PATCH':'POST',body:JSON.stringify(b)});
-const openDr=d=>openForm({title:d?'Edit driver':'Driver details',data:d,save:d?'Save changes':'Save driver',fields:[{k:'firstName',l:'First name',r:1},{k:'lastName',l:'Last name'},{k:'phone',l:'Phone number',t:'tel',r:1},{k:'email',l:'Email',t:'email'},{k:'nic',l:'NIC No'},{k:'license',l:'Driving licence'},{k:'address',l:'Address',w:1},{k:'city',l:'City (district)',t:'select',o:DIST,ph:'Select district'}],seg:{title:'Availability',k:'status',def:'Available',o:[['Available','','stAvailable'],['Unavailable','','stUnavailable'],['On trip','','stOntrip']]},onSave:b=>save('/drivers',d?.id,b)});
-const openVe=d=>openForm({title:d?'Edit vehicle':'Vehicle details',data:d,save:d?'Save changes':'Save vehicle',fields:[{k:'name',l:'Vehicle name',r:1},{k:'model',l:'Vehicle model',r:1},{k:'plate',l:'Number plate',r:1},{k:'type',l:'Vehicle type',t:'select',r:1,o:[['Sedan','Sedan Cars'],['KDH','KDH'],['Hatchback','Hatchback']],ph:'Select vehicle type'},{k:'color',l:'Vehicle colour'},{k:'seats',l:'Vehicle seats',t:'number'}],seg:{title:'Air conditioning',k:'ac',def:'A/C',nb:1,o:[['A/C'],['Non A/C']]},onSave:b=>save('/fleet',d?.id,b)});
-const openUs=d=>openForm({title:d?'Edit user':'User details',data:d,save:d?'Save changes':'Save user',fields:[{k:'name',l:'Full name',r:1},{k:'email',l:'Email',t:'email',r:1},{k:'phone',l:'Phone',t:'tel'},{k:'role',l:'Role',t:'select',r:1,o:['Owner','Dispatcher','Driver','Accountant'],ph:'Select role'}],seg:{title:'Status',k:'status',def:'Active',o:[['Active','','stAvailable'],['Inactive','','stUnavailable']]},onSave:b=>save('/users',d?.id,b)});
-const patch=(id,body)=>api('/bookings/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(body)}).then(load).catch(e=>alert(e.message));
-document.addEventListener('click',e=>{const t=e.target;
-if(t.dataset.acc)return patch(t.dataset.acc,{status:'Accepted',driver:$('#dr').value,driverId:((DR.find(d=>d.name==$('#dr').value))||{}).id||'',vehicle:$('#ve').value,payment:$('#pm').value});
-if(t.dataset.sv)return api('/bookings/'+encodeURIComponent(t.dataset.sv),{method:'PATCH',body:JSON.stringify({driver:$('#dr').value,driverId:((DR.find(d=>d.name==$('#dr').value))||{}).id||'',vehicle:$('#ve').value,payment:$('#pm').value})}).then(()=>{alert('Saved');load()}).catch(e=>alert(e.message));
-if(t.dataset.dec){const r=prompt('Reason for declining?');return r&&patch(t.dataset.dec,{status:'Rejected',reason:r})}
-if(t.id=='addDr')return openDr();
-if(t.dataset.edd)return openDr(DR.find(x=>x.id==t.dataset.edd));
-if(t.dataset.st)return api('/drivers/'+t.dataset.id,{method:'PATCH',body:JSON.stringify({status:t.dataset.st})}).then(load).catch(e=>alert(e.message));
-if(t.dataset.rmd)return confirm('Remove this driver?')&&api('/drivers/'+t.dataset.rmd,{method:'DELETE'}).then(load).catch(e=>alert(e.message));
-if(t.id=='addVe')return openVe();
-if(t.dataset.edv)return openVe(FLEET.find(x=>x.id==t.dataset.edv));
-if(t.dataset.rmv)return confirm('Remove this vehicle?')&&api('/fleet/'+t.dataset.rmv,{method:'DELETE'}).then(load).catch(e=>alert(e.message));
-if(t.id=='addUs')return openUs();
-if(t.dataset.edu)return openUs(US.find(x=>x.id==t.dataset.edu));
-if(t.dataset.rmu)return confirm('Remove this user?')&&api('/users/'+t.dataset.rmu,{method:'DELETE'}).then(load).catch(e=>alert(e.message));
-if(t.dataset.cat){const c=t.dataset.cat,cats={Sedan:true,KDH:true,Hatchback:true,...(CFG.categories||{})};cats[c]=cats[c]===false;return api('/settings',{method:'POST',body:JSON.stringify({categories:cats})}).then(()=>{CFG.categories=cats;route()}).catch(e=>alert(e.message))}
-if(t.id=='sv'){document.querySelectorAll('[data-k]').forEach(i=>CFG[i.dataset.k]=i.value);return api('/settings',{method:'POST',body:JSON.stringify(CFG)}).then(()=>alert('Saved')).catch(e=>alert(e.message))}
-if(t.id=='ex'&&EXP){const c='\ufeff'+[EXP.head,...EXP.rows].map(r=>r.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv;charset=utf-8'}));a.download=EXP.name+'-'+(RF.from||'start')+'-to-'+(RF.to||'today')+'.csv';a.click();return}
-const tr=t.closest('tr[data-go]');if(tr&&!t.closest('button'))location.hash=tr.dataset.go;
-else if(t.closest('tr[data-go]')&&t.classList.contains('g'))location.hash=t.closest('tr').dataset.go});
-$('#lf').onsubmit=async e=>{e.preventDefault();$('#err').textContent='';try{await signInWithEmailAndPassword(auth,$('#em').value,$('#pw').value)}catch{$('#err').textContent='Invalid email or password.'}};
-$('#fp').onclick=async e=>{e.preventDefault();if(!$('#em').value)return $('#err').textContent='Enter your email first.';await sendPasswordResetEmail(auth,$('#em').value).catch(()=>{});$('#err').style.color='#1c7a2f';$('#err').textContent='If the account exists, a reset email was sent.'};
-$('#lo').onclick=e=>{e.preventDefault();signOut(auth)};
-onAuthStateChanged(auth,u=>{$('#login').classList.toggle('hidden',!!u);document.querySelector('.tsw.fx').classList.toggle('hidden',!!u);$('#shell').classList.toggle('hidden',!u);if(u){STACK=[location.hash||'#dash'];syncBack();$('#un').textContent=u.displayName||u.email;$('#av').textContent=(u.displayName||u.email||'?')[0].toUpperCase();load();route()}});
-setInterval(()=>auth.currentUser&&load(),10000);
-</script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Lanka Rides Back Office</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root { --bg: #c8e6fe; --ink: #0b1437; --mut: #5b6785; --bl: #1565e0; --ln: #b9c0ff; --card: #fff; --nav: #f5f5f5; --th: #cdd2ff; --odd: #f5f7ff; --pill: #111; }
+      [data-theme=dark] { --bg: #0b1220; --ink: #e8ecf8; --mut: #9aa6c4; --ln: #2f3b63; --card: #151e33; --nav: #141c2f; --th: #243056; --odd: #1a243c; --pill: #26325a; }
+      [data-theme=dark] .cd, [data-theme=dark] .st, [data-theme=dark] .tw { box-shadow: none; }
+      .tile.aqua { color: #0b1437; }
+      [data-theme=dark] { color-scheme: dark; }
+      input, select, textarea { color: var(--ink); }
+      ::placeholder { color: var(--mut); opacity: .85; }
+      option { background: var(--card); color: var(--ink); }
+      .tsw {
+        position: relative;
+        width: 78px;
+        height: 40px;
+        border-radius: 24px;
+        border: 1px solid #ffffffb0;
+        cursor: pointer;
+        flex: none;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg,#f6f7fa,#c6c9d4 55%,#e8eaf0);
+        box-shadow: inset 0 1px 1px #fff,inset 0 -2px 4px #0002,0 2px 8px #0003,0 0 14px #fff9;
+        transition: box-shadow .25s,transform .15s;
+      }
+      .tsw:hover { box-shadow: inset 0 1px 1px #fff,inset 0 -2px 4px #0002,0 2px 8px #0003,0 0 24px #fff; }
+      .tsw:active { transform: scale(.96); }
+      .tsw .ti {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(145deg,#707584,#2a2d37);
+        box-shadow: inset 0 2px 3px #000b,0 1px 0 #fffc;
+        color: #eef1fa;
+      }
+      .tsw svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .tsw .is { display: none; }
+      [data-theme=dark] .tsw {
+        border-color: #ffffff24;
+        background: linear-gradient(135deg,#3b3f4d,#1b1e27 55%,#2c303c);
+        box-shadow: inset 0 1px 1px #ffffff30,inset 0 -2px 4px #0009,0 2px 8px #0009,0 0 16px #5b7cfa66;
+      }
+      [data-theme=dark] .tsw:hover { box-shadow: inset 0 1px 1px #ffffff30,inset 0 -2px 4px #0009,0 2px 8px #0009,0 0 26px #7f9cff; }
+      [data-theme=dark] .tsw .ti { background: linear-gradient(145deg,#0d0f15,#2a2e3a); color: #ffd36b; }
+      [data-theme=dark] .tsw .is { display: block; }
+      [data-theme=dark] .tsw .im { display: none; }
+      .tsw.fx { position: fixed; top: 18px; right: 18px; z-index: 9; }
+      .mo { position: fixed; inset: 0; background: #0009; display: flex; align-items: center; justify-content: center; z-index: 20; padding: 16px; }
+      .mb {
+        background: var(--card);
+        color: var(--ink);
+        border-radius: 22px;
+        padding: 26px;
+        width: min(640px,100%);
+        max-height: 92vh;
+        overflow: auto;
+        box-shadow: 0 20px 60px #0007;
+      }
+      .mb h3 { margin: 6px 0 12px; }
+      .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-bottom: 18px; }
+      .fg label { font-size: 13px; font-weight: 600; display: flex; flex-direction: column; gap: 5px; }
+      .fg label.w { grid-column: 1/-1; }
+      .fg i { color: #e8484d; font-style: normal; }
+      .fg label>input, .fg label>select { width: 100%; }
+      .fg { align-items: end; }
+      .ac { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+      #merr { color: #e8484d; font-size: 13px; margin-top: 10px; }
+      .seg { display: flex; gap: 10px; }
+      .seg label { flex: 1; }
+      .seg input { display: none; }
+      .seg span { display: block; text-align: center; padding: 10px; border: 1px solid var(--ln); border-radius: 30px; cursor: pointer; font-size: 14px; }
+      .seg input:checked+span { color: #fff; border-color: transparent; }
+      .seg.nb input:checked+span { background: var(--bl); }
+      .stAvailable input:checked+span { background: #3dba54; }
+      .stUnavailable input:checked+span { background: #e8484d; }
+      .stOntrip input:checked+span { background: #e0a800; }
+      .sb { display: inline-flex; gap: 4px; }
+      .sb button { border: 1px solid var(--ln); background: transparent; color: var(--mut); border-radius: 20px; padding: 4px 10px; font-size: 12px; cursor: pointer; }
+      .sb button.on { color: #fff; border-color: transparent; }
+      .sb button.on.Available { background: #3dba54; }
+      .sb button.on.Unavailable { background: #e8484d; }
+      .sb button.on.Ontrip { background: #e0a800; }
+      @media(max-width:600px) {
+        .fg { grid-template-columns: 1fr; }
+        .seg { flex-direction: column; }
+      }
+      .sw { border: 0; border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; cursor: pointer; color: #fff; }
+      .sw.on { background: #3dba54; }
+      .sw.off { background: #e8484d; }
+      .af { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+      .af input, .af select { width: auto; flex: 1; min-width: 150px; }
+      * { box-sizing: border-box; margin: 0; font-family: Poppins,system-ui,sans-serif; }
+      body { background: var(--bg); color: var(--ink); min-height: 100vh; }
+      .hidden { display: none!important; }
+      #login { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; background: var(--card); }
+      .lp { background: #5b7cfa; position: relative; overflow: hidden; color: #fff; padding: 56px; }
+      .lp img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; opacity: .6; }
+      .lp>* { position: relative; }
+      .lp h2 { font-size: 44px; margin-top: 150px; line-height: 1.1; }
+      .lp h2 span { font-weight: 400; }
+      .logo { width: 48px; height: 48px; background: #e4e3df; color: #222; font: 700 20px Georgia,serif; display: grid; place-items: center; border-radius: 6px; }
+      .lf { display: flex; flex-direction: column; justify-content: center; padding: 0 90px; }
+      .lf h1 { color: #5b7cfa; font-size: 40px; }
+      .lf label { font-weight: 600; font-size: 14px; margin: 18px 0 6px; }
+      input, select { padding: 12px 18px; border: 1px solid var(--ln); border-radius: 30px; font-size: 14px; background: var(--card); width: 100%; }
+      .btn { border: 0; border-radius: 30px; padding: 12px 22px; font-weight: 500; cursor: pointer; color: #fff; background: linear-gradient(#4a90ff,var(--bl)); font-size: 14px; }
+      .btn.o { background: var(--card); color: var(--bl); border: 1px solid var(--ln); }
+      .btn.g { background: #3dba54; }
+      .btn.r { background: #e8484d; }
+      .btn.s { padding: 6px 14px; font-size: 13px; }
+      #err { color: #c62828; font-size: 13px; margin-top: 10px; }
+      nav { margin: 26px 40px 0; background: var(--nav); border-radius: 40px; padding: 12px 22px; display: flex; align-items: center; gap: 10px; }
+      nav b { font-size: 18px; margin: 0 auto 0 12px; }
+      nav .logo { width: 40px; height: 40px; font-size: 16px; }
+      nav a {
+        background: var(--pill);
+        color: #fff;
+        border-radius: 30px;
+        padding: 10px clamp(9px,1.05vw,20px);
+        text-decoration: none;
+        font-size: clamp(12px,.82vw + 1px,15px);
+        white-space: nowrap;
+      }
+      nav a.on { background: linear-gradient(#4a90ff,var(--bl)); }
+      nav span { font-size: 12px; color: var(--mut); margin-left: 18px; text-align: right; }
+      nav span b { display: block; color: var(--ink); font-size: 14px; margin: 0; }
+      main { padding: 20px 40px 50px; }
+      h1.t { font-size: 30px; }
+      .sub { color: var(--mut); font-size: 14px; margin: 2px 0 14px; }
+      .hd { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+      .g { display: grid; gap: 16px; margin-bottom: 16px; }
+      .g3 { grid-template-columns: repeat(3,1fr); }
+      .g4 { grid-template-columns: repeat(4,1fr); }
+      .g5 { grid-template-columns: repeat(5,1fr); }
+      .st { background: var(--card); border-radius: 20px; padding: 16px 18px; box-shadow: 0 6px 18px #0a3a7a22; }
+      .st small { color: var(--mut); font-size: 12px; display: block; }
+      .st b { font-size: 24px; }
+      .tile {
+        display: block;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 22px;
+        padding: 22px;
+        min-height: 120px;
+        background: linear-gradient(#0a56d8,#4a96ff);
+        cursor: pointer;
+      }
+      .tile h3 { font-size: 24px; }
+      .tile p { font-size: 13px; margin-top: 34px; opacity: .9; }
+      .tile.green { background: linear-gradient(#2e9e41,#74d160); }
+      .tile.red { background: linear-gradient(#cc3a40,#ee7075); }
+      .tile.aqua { background: linear-gradient(135deg,#2db6dd,#e8f6ff); color: var(--ink); }
+      .tile big { display: block; font-size: 44px; font-weight: 700; margin-top: 40px; }
+      .cd { background: var(--card); border-radius: 20px; padding: 18px; box-shadow: 0 6px 18px #0a3a7a22; margin-bottom: 16px; }
+      .cd h4 { margin-bottom: 8px; }
+      .cd p { font-size: 14px; margin: 8px 0; }
+      .tw { background: var(--card); border-radius: 20px; overflow: auto; box-shadow: 0 6px 18px #0a3a7a22; border: 2px solid var(--ln); }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      th { background: var(--th); padding: 12px 8px; }
+      td { padding: 14px 8px; text-align: center; border: 1px solid var(--ln); }
+      tbody tr:nth-child(odd) { background: var(--odd); }
+      tr[data-go] { cursor: pointer; }
+      .bd { border-radius: 20px; padding: 3px 12px; font-size: 12px; background: var(--card)3c4; color: #8a5a00; white-space: nowrap; }
+      .bd.ok { background: #d9f4de; color: #1c7a2f; }
+      .bd.no { background: #fde0e0; color: #b3262b; }
+      .bd.in { background: #e1e8ff; color: #2750c8; }
+      .bar { height: 12px; border-radius: 8px; background: linear-gradient(90deg,#2db6dd,#4a90ff); }
+      .bars { display: flex; align-items: flex-end; gap: 16px; height: 200px; }
+      .bars div { flex: 1; text-align: center; font-size: 12px; }
+      .bars i { display: block; border-radius: 10px 10px 0 0; background: linear-gradient(#4a90ff,#0a56d8); }
+      .two { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+      .row { display: flex; justify-content: space-between; gap: 10px; }
+      .fl { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .set label { display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin: 10px 0; gap: 10px; }
+      .set input { width: 110px; padding: 8px 12px; }
+      @media(max-width:900px) {
+        #login { grid-template-columns: 1fr; }
+        .lp { display: none; }
+        .lf { padding: 40px; }
+        .g3, .g4, .g5, .two { grid-template-columns: 1fr 1fr; }
+        nav { flex-wrap: wrap; margin: 12px; }
+        main { padding: 16px; }
+      }
+      .hd>.fl { margin-bottom: 16px; }
+      nav { flex-wrap: nowrap; row-gap: 8px; position: relative; z-index: 12; }
+      .bkb {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid #d3d5dd;
+        cursor: pointer;
+        flex: none;
+        padding: 0;
+        display: grid;
+        place-items: center;
+        color: #6f7482;
+        background: radial-gradient(circle at 50% 22%,#fff 0,#f4f4f7 55%,#d9dbe2 100%);
+        box-shadow: 0 3px 10px #0003,inset 0 -5px 8px #ffffffd0;
+        transition: transform .15s,opacity .2s;
+      }
+      .bkb svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+      .bkb:hover:not(:disabled) { transform: scale(1.07); }
+      .bkb:disabled { opacity: .35; cursor: default; }
+      [data-theme=dark] .bkb {
+        border-color: #ffffff22;
+        color: #dfe4f5;
+        background: radial-gradient(circle at 50% 22%,#4a5066 0,#252a3a 55%,#12151f 100%);
+        box-shadow: 0 3px 10px #0009,inset 0 -5px 8px #00000066;
+      }
+      #sbox { position: relative; flex: 0 1 180px; min-width: 130px; }
+      .sbx { display: flex; align-items: center; border: 2px solid var(--ink); background: #e9e9ec; border-radius: 30px; padding: 2px 2px 2px 14px; }
+      [data-theme=dark] .sbx { background: var(--odd); }
+      .sbx input { border: 0; background: transparent; padding: 6px 6px; border-radius: 0; font-size: 13px; outline: 0; width: 100%; min-width: 0; color: var(--ink); }
+      .sbx button {
+        flex: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 0;
+        background: var(--ink);
+        color: var(--card);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        padding: 0;
+      }
+      .sbx svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+      #qr {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: max(100%,320px);
+        max-height: 340px;
+        overflow: auto;
+        background: var(--card);
+        border: 1px solid var(--ln);
+        border-radius: 16px;
+        box-shadow: 0 14px 40px #0004;
+        z-index: 30;
+      }
+      .si { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--ln); text-align: left; }
+      .si:last-child { border: 0; }
+      .si:hover { background: var(--odd); }
+      .si .k { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--bl); }
+      .si .t1 { font-size: 14px; font-weight: 600; color: var(--ink); }
+      .si .t2 { font-size: 12px; color: var(--mut); }
+      #nv { flex-wrap: nowrap; min-width: 0; }
+      nav>b { white-space: nowrap; }
+      nav>span { white-space: nowrap; flex: none; margin-left: 6px; }
+      nav>a#lo { flex: none; }
+      @media(max-width:1280px) {
+        nav>b { display: none; }
+        #nv { margin-left: auto; }
+      }
+      @media(max-width:1000px) {
+        nav { flex-wrap: wrap; }
+      }
+      /* ===== TravelPro-style redesign ===== */
+      :root {
+        --bg: #f1f5fb;
+        --ink: #101a33;
+        --mut: #6b7794;
+        --bl: #2563eb;
+        --ln: #e5eaf3;
+        --card: #fff;
+        --th: #f6f8fc;
+        --odd: #fff;
+        --side: #0b1f4d;
+        --hov: #f3f6fd;
+        --sh: 0 1px 3px #0f1f4a0f;
+      }
+      [data-theme=dark] {
+        --bg: #0a1020;
+        --ink: #e8ecf8;
+        --mut: #93a0bf;
+        --ln: #232e4d;
+        --card: #121a30;
+        --th: #18223c;
+        --odd: #121a30;
+        --side: #08132f;
+        --hov: #18223c;
+        --sh: none;
+      }
+      * { font-family: Inter,Poppins,system-ui,sans-serif; }
+      #shell { display: flex; min-height: 100vh; }
+      .side { width: 236px; flex: none; background: var(--side); color: #fff; padding: 22px 14px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+      .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 26px; font-size: 19px; }
+      .brand .logo { width: 34px; height: 34px; font-size: 14px; border-radius: 9px; background: var(--bl); color: #fff; font-family: inherit; }
+      #nv { display: flex; flex-direction: column; gap: 4px; flex: 1; overflow: auto; }
+      #nv a, .side .out {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 11px 14px;
+        border-radius: 10px;
+        color: #c5cfe8;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .side svg, .ic svg, .ib svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+      #nv a:hover, .side .out:hover { background: #ffffff14; color: #fff; }
+      #nv a.on { background: var(--bl); color: #fff; }
+      .mn { flex: 1; min-width: 0; }
+      .top { display: flex; align-items: center; gap: 12px; padding: 16px 32px; position: relative; z-index: 12; }
+      .sp { flex: 1; }
+      #sbox { flex: 1 1 auto; max-width: 440px; min-width: 150px; }
+      .sbx { border: 1px solid var(--ln); background: var(--card); border-radius: 12px; padding: 3px 12px; box-shadow: var(--sh); }
+      [data-theme=dark] .sbx { background: var(--card); }
+      .sbx button { order: -1; background: none; color: var(--mut); width: 26px; height: 26px; }
+      .sbx input { padding: 8px 8px; color: var(--ink); }
+      #qr { left: 0; right: auto; width: max(100%,340px); border-radius: 12px; }
+      [data-theme] .tsw, [data-theme] .bkb, .ib {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 1px solid var(--ln);
+        background: var(--card);
+        box-shadow: var(--sh);
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        position: relative;
+        cursor: pointer;
+        transition: none;
+      }
+      [data-theme] .tsw:hover, [data-theme] .bkb:hover:not(:disabled) { box-shadow: var(--sh); transform: none; background: var(--hov); }
+      [data-theme] .tsw .ti { background: none; box-shadow: none; color: var(--ink); }
+      [data-theme=dark] .tsw .ti { color: #ffd36b; }
+      .tsw.fx { position: fixed; top: 18px; right: 18px; }
+      .ib.dot::after { content: ""; position: absolute; top: 8px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; border: 2px solid var(--card); }
+      .usr { display: flex; align-items: center; gap: 10px; margin-left: 6px; }
+      .usr small { display: block; color: var(--mut); font-size: 12px; }
+      .usr b { display: block; font-size: 14px; }
+      #av {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--bl);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font: 600 15px Inter,sans-serif;
+        font-style: normal;
+      }
+      main { padding: 6px 32px 40px; }
+      h1.t { font-size: 22px; font-weight: 700; }
+      .st, .cd, .tw { border-radius: 16px; box-shadow: var(--sh); border: 1px solid var(--ln); }
+      .st { padding: 18px; }
+      .st b { font-size: 24px; font-weight: 700; }
+      .kp { display: flex; gap: 14px; align-items: center; color: inherit; text-decoration: none; }
+      .kp small { font-size: 13px; }
+      .kp em { display: block; font-style: normal; font-size: 12px; color: var(--mut); margin-top: 2px; }
+      .ic { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+      .ic svg { width: 22px; height: 22px; }
+      .ic.b { background: #2563eb1f; color: #2563eb; }
+      .ic.g { background: #10b9811f; color: #059669; }
+      .ic.p { background: #8b5cf61f; color: #7c3aed; }
+      .ic.o { background: #f59e0b24; color: #d97706; }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        padding: 32px;
+        min-height: 132px;
+        color: #fff;
+        background: linear-gradient(100deg,#0b2a6b,#1d5fd1 55%,#5fb7e8);
+        margin-bottom: 16px;
+      }
+      .hero h2 { font-size: 22px; font-weight: 700; position: relative; }
+      .hero p { font-size: 14px; margin-top: 8px; opacity: .92; position: relative; }
+      .hv { position: absolute; right: 0; bottom: 0; width: 50%; height: 100%; }
+      .dg { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+      .dg>div>.cd:last-child { margin-bottom: 0; }
+      .ch { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+      .ch h4 { font-size: 16px; margin: 0; }
+      .ch a { font-size: 13px; color: var(--bl); text-decoration: none; font-weight: 500; }
+      .rw { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--ln); color: inherit; text-decoration: none; }
+      .rw:first-of-type { border-top: 0; }
+      .rw .ic { width: 40px; height: 40px; }
+      .rw .ic svg { width: 18px; height: 18px; }
+      .rw>div { flex: 1; min-width: 0; }
+      .rw b { font-size: 14px; display: block; }
+      .rw small { font-size: 12px; color: var(--mut); }
+      .rw .r2 { text-align: right; flex: none; }
+      .rw .r2 span { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+      .ov { display: flex; align-items: center; gap: 26px; padding: 10px 4px; flex-wrap: wrap; }
+      .dn { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+      .dn>div { width: 98px; height: 98px; border-radius: 50%; background: var(--card); display: grid; place-content: center; text-align: center; }
+      .dn b { font-size: 26px; line-height: 1; }
+      .dn small { font-size: 12px; color: var(--mut); }
+      .lg { flex: 1; min-width: 140px; }
+      .lg p { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 14px; }
+      .lg i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+      .lg span { margin-left: auto; font-weight: 600; }
+      .tile {
+        background: var(--card);
+        color: var(--ink);
+        border: 1px solid var(--ln);
+        border-left: 5px solid var(--bl);
+        border-radius: 16px;
+        box-shadow: var(--sh);
+        min-height: 110px;
+        padding: 20px;
+      }
+      .tile.green, .tile.red, .tile.aqua { background: var(--card); color: var(--ink); }
+      .tile.green { border-left-color: #10b981; }
+      .tile.red { border-left-color: #ef4444; }
+      .tile.aqua { border-left-color: #06b6d4; }
+      .tile h3 { font-size: 18px; }
+      .tile p { margin-top: 14px; color: var(--mut); }
+      .tile big { margin-top: 14px; font-size: 38px; }
+      table { font-size: 14px; }
+      th { background: var(--th); text-align: left; padding: 12px 16px; color: var(--mut); font-weight: 600; font-size: 12px; white-space: nowrap; }
+      td { text-align: left; padding: 14px 16px; border: 0; border-top: 1px solid var(--ln); }
+      tbody tr:nth-child(odd) { background: none; }
+      tr[data-go]:hover { background: var(--hov); }
+      .tw { border-width: 1px; }
+      .bd { background: #fff4d6; color: #9a6700; font-weight: 500; }
+      [data-theme=dark] .bd { background: #f59e0b26; color: #fbbf24; }
+      .bd.ok { background: #d9f4de; color: #1c7a2f; }
+      .bd.no { background: #fde0e0; color: #b3262b; }
+      .bd.in { background: #e1e8ff; color: #2750c8; }
+      [data-theme=dark] .bd.ok { background: #10b98126; color: #34d399; }
+      [data-theme=dark] .bd.no { background: #ef444426; color: #f87171; }
+      [data-theme=dark] .bd.in { background: #2563eb33; color: #8fb2ff; }
+      .btn { background: var(--bl); border-radius: 10px; font-weight: 600; }
+      .btn.o { background: var(--card); color: var(--bl); border: 1px solid var(--ln); }
+      .btn.g { background: #10b981; }
+      .btn.r { background: #ef4444; }
+      input, select { border-radius: 10px; }
+      .mb { border-radius: 18px; }
+      .seg span { border-radius: 10px; }
+      .bar { background: var(--bl); }
+      .bars i { background: var(--bl); }
+      .lp { background: linear-gradient(160deg,#0b1f4d,#2563eb); }
+      .lf h1 { color: var(--ink); }
+      @media(max-width:900px) {
+        .side { width: 68px; padding: 18px 8px; }
+        .brand { padding: 0 6px 22px; }
+        .brand b, #nv a span, .side .out span { display: none; }
+        #nv a, .side .out { justify-content: center; padding: 12px 0; }
+        .top { padding: 12px 16px; }
+        main { padding: 6px 16px 30px; }
+        .dg { grid-template-columns: 1fr; }
+        .usr>span { display: none; }
+      }
+      @media(max-width:600px) {
+        .g3, .g4, .g5, .two { grid-template-columns: 1fr; }
+        .hero { padding: 22px; }
+      }
+      /* ---- Reports: date filter, grouped rows, print ---- */
+      .rf {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 10px 14px;
+        background: var(--card);
+        border: 1px solid var(--ln);
+        border-radius: 16px;
+        box-shadow: var(--sh);
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .rf label { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--mut); }
+      .rf input[type=date] { width: auto; border-radius: 12px; padding: 9px 12px; color: var(--ink); }
+      .rfp { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+      .rfp .btn.on { background: var(--bl); color: #fff; border-color: var(--bl); }
+      .rfe { width: 100%; margin: 0; color: #e8484d; font-size: 13px; }
+      .rft { width: 100%; margin: 0; color: var(--mut); font-size: 13px; }
+      tr.grp td { background: var(--th); font-weight: 600; }
+      tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
+      @media print {
+        html[data-theme] { --bg: #fff; --ink: #000; --card: #fff; --th: #eee; --odd: #fff; --ln: #ccc; --mut: #555; }
+        .side, header.top, .rf, .hd .fl { display: none!important; }
+        main { padding: 0; }
+        .tw, .st { box-shadow: none; }
+      }
+      /* ===== Soft-blue dashboard theme (matches reference) ===== */
+      :root {
+        --bg: #d3ddf1;
+        --card: #c8d5ee;
+        --ink: #0f1b3d;
+        --mut: #56638a;
+        --bl: #2a5fd4;
+        --ln: #b4c4e4;
+        --th: #aec2ec;
+        --hov: #bccbea;
+        --side: #c8d5ee;
+        --inp: #dce5f5;
+        --b1: #2685b8;
+        --b2: #0d4287;
+        --sh: 8px 10px 22px #8499c480,-5px -5px 14px #ffffff40;
+      }
+      [data-theme=dark] {
+        --bg: #0a1226;
+        --card: #121c38;
+        --ink: #e8ecf8;
+        --mut: #93a0bf;
+        --ln: #243255;
+        --th: #1b2a52;
+        --hov: #1a2748;
+        --side: #101a34;
+        --inp: #0c1530;
+        --b1: #13497f;
+        --b2: #0a1f4d;
+        --sh: 8px 10px 22px #0007,-4px -4px 14px #ffffff08;
+      }
+      #shell { background: linear-gradient(110deg,var(--b1),var(--b2)) top/100% 190px no-repeat,var(--bg); }
+      .side { margin-top: 50px; height: calc(100vh - 50px); top: 50px; border-radius: 28px 0 0 0; color: var(--ink); background: var(--side); box-shadow: var(--sh); }
+      .brand b { color: var(--ink); }
+      #nv a, .side .out { color: var(--mut); }
+      #nv a:hover, .side .out:hover { background: var(--hov); color: var(--ink); }
+      #nv a.on { background: var(--bl); color: #fff; box-shadow: 0 6px 12px #2a5fd444; }
+      /* header on the gradient banner */
+      .top .sbx { background: #ffffff14; border: 1px solid #ffffffb0; border-radius: 30px; box-shadow: none; }
+      .top .sbx input { color: #fff; background: transparent; border: 0; }
+      .top .sbx input::placeholder { color: #ffffffcc; }
+      .top .sbx button { order: 0; color: #fff; }
+      .top .tsw, .top .bkb, .top .ib { background: #ffffff1a; border: 1px solid #ffffffb0; color: #fff; box-shadow: none; }
+      .top .tsw:hover, .top .bkb:hover:not(:disabled), .top .ib:hover { background: #ffffff33; }
+      .top .tsw .ti { color: #fff; }
+      [data-theme=dark] .top .tsw .ti { color: #ffd36b; }
+      .ib.dot::after { border-color: #2a74c0; }
+      .usr b { color: #fff; }
+      .usr small { color: #ffffffb8; }
+      #av { background: #ffffff2e; border: 1px solid #fff9; }
+      .hd h1.t, .hero h2 { color: #fff; }
+      .hd .sub { color: #ffffffd0; }
+      .hero { background: none; box-shadow: none; border-radius: 0; padding: 8px 0 22px; min-height: 0; margin-bottom: 6px; }
+      .hv { display: none; }
+      .hero p { color: #fff; }
+      /* soft cards with coloured bottom band */
+      .cd, .tw, .rf, .mb { background: var(--card); border: 0; border-radius: 18px; box-shadow: var(--sh); }
+      .st, .tile, .tile.green, .tile.red, .tile.aqua {
+        --c: var(--bl);
+        border: 0;
+        border-radius: 18px;
+        box-shadow: var(--sh);
+        color: var(--ink);
+        background: var(--card) linear-gradient(var(--c),var(--c)) bottom/100% 8px no-repeat;
+      }
+      .st { padding-bottom: 24px; }
+      .kp:has(.ic.g), .tile.green { --c: #34d399; }
+      .kp:has(.ic.p) { --c: #8b5cf6; }
+      .kp:has(.ic.o), .tile.aqua { --c: #f5a524; }
+      .tile.red { --c: #ef4444; }
+      .st b, .tile big { color: var(--c); }
+      th { background: var(--th); color: var(--ink); text-transform: uppercase; letter-spacing: .03em; }
+      tr.grp td { background: var(--th); }
+      input, select, textarea { background: var(--inp); border: 1px solid var(--ln); border-radius: 12px; }
+      .btn { background: linear-gradient(#4a82e6,var(--bl)); border-radius: 12px; box-shadow: 0 4px 10px #2a5fd433; }
+      .btn.o { background: var(--card); border: 0; box-shadow: var(--sh); }
+      .btn.g { background: linear-gradient(#34c06a,#0d9a6c); box-shadow: none; }
+      .btn.r { background: linear-gradient(#e85a5a,#cf3a3a); box-shadow: none; }
+      :root:not([data-theme=dark]) .bd.ok { background: #b5dfc0; }
+      :root:not([data-theme=dark]) .bd.no { background: #eec3c3; }
+      :root:not([data-theme=dark]) .bd.in { background: #c3cff2; }
+      :root:not([data-theme=dark]) .bd { background: #efdca8; }
+      .rfp .btn.on { background: var(--bl); color: #fff; }
+      .lp { background: linear-gradient(160deg,var(--b2),var(--b1)); }
+      @media print {
+        #shell { background: #fff; }
+        .hd h1.t, .hd .sub { color: #000; }
+        .st, .cd, .tw, .rf { box-shadow: none; border: 1px solid #ccc; }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="tsw fx" aria-label="Switch light / dark mode" title="Light / dark mode">
+      <span class="ti">
+        <svg class="im" viewBox="0 0 24 24">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+        </svg>
+        <svg class="is" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+        </svg>
+      </span>
+    </button>
+    <section id="login">
+      <div class="lp">
+        <div class="logo">TD</div>
+        <img src="images/hero-car.jpg" alt="">
+        <p style="margin-top:130px">Lanka Rides back office</p>
+        <h2><b>Secure access.</b><br><span>Smarter control.</span></h2>
+      </div>
+      <form class="lf" id="lf">
+        <h1>Welcome back</h1>
+        <p class="sub">Sign in to manage bookings, fleet and payments.</p>
+        <label>Email address</label>
+        <input id="em" type="email" placeholder="you@lankarides.com" required>
+        <label>Password</label>
+        <input id="pw" type="password" required>
+        <div class="row" style="margin:14px 0 20px;font-size:13px">
+          <span></span>
+          <a href="#" id="fp" style="color:var(--bl);text-decoration:none">Forgot password?</a>
+        </div>
+        <button class="btn" style="padding:16px">Log in</button>
+        <div id="err"></div>
+        <p class="sub" style="text-align:center;margin-top:30px">Powered by TD World</p>
+      </form>
+    </section>
+    <section id="shell" class="hidden">
+      <aside class="side">
+        <div class="brand"><div class="logo">TD</div><b>Lanka Rides</b></div>
+        <div id="nv"></div>
+        <a href="#" id="lo" class="out">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+          </svg>
+          <span>Log out</span>
+        </a>
+      </aside>
+      <div class="mn">
+        <header class="top">
+          <button id="bk" class="bkb" aria-label="Go back" title="Back" disabled>
+            <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <div id="sbox">
+            <div class="sbx">
+              <input id="q" placeholder="Search bookings, drivers…" autocomplete="off" aria-label="Search">
+              <button type="button" id="qb" aria-label="Search">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="7"/>
+                  <path d="M20 20l-3.5-3.5"/>
+                </svg>
+              </button>
+            </div>
+            <div id="qr" class="hidden"></div>
+          </div>
+          <span class="sp"></span>
+          <button class="tsw" aria-label="Switch light / dark mode" title="Light / dark mode">
+            <span class="ti">
+              <svg class="im" viewBox="0 0 24 24">
+                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+              </svg>
+              <svg class="is" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="4"/>
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+              </svg>
+            </span>
+          </button>
+          <a class="ib" id="bell" href="#new" aria-label="New requests" title="New requests">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>
+            </svg>
+          </a>
+          <span class="usr">
+            <i id="av"></i>
+            <span><b id="un"></b><small>Back office</small></span>
+          </span>
+        </header>
+        <main id="app"></main>
+      </div>
+    </section>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      const auth = getAuth(initializeApp({ apiKey: "AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc", authDomain: "tlucifer-auth.firebaseapp.com", projectId: "tlucifer-auth" }));
+      const setTheme = t => { document.documentElement.dataset.theme = t; localStorage.setItem("theme", t); document.querySelectorAll(".tsw").forEach(b => b.setAttribute("aria-checked", t == "dark")); };
+      setTheme(localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+      document.querySelectorAll(".tsw").forEach(b => b.onclick = () => setTheme(document.documentElement.dataset.theme == "dark" ? "light" : "dark"));
+      const $ = s => document.querySelector(s), E = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const LKR = n => n ? 'LKR ' + Number(n).toLocaleString() : '—';
+      // When opened with Live Server / file://, talk to the Node server on port 3000
+      const API = (['5500', '5501'].includes(location.port) || location.protocol === 'file:') ? 'http://localhost:3000' : '';
+      let BK = [], CFG = { minNotice: 3, maxDuration: 14, buffer: 30, grace: 15, rateSedan: 120, rateKDH: 280, rateHatch: 95 };
+      let FLEET = [], DR = []; // loaded from the server
+      let US = [];
+      async function api(p, o = {}) { const t = await auth.currentUser.getIdToken(); const r = await fetch(API + '/api' + p, { ...o, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t } }); const d = await r.json().catch(() => ({})); if (!r.ok || !d.success)
+          throw new Error(d.message || 'Request failed'); return d; }
+      async function load() { try {
+          [BK, DR, FLEET, US] = (await Promise.all([api('/bookings'), api('/drivers'), api('/fleet'), api('/users')])).map(r => r.bookings || r.drivers || r.fleet || r.users);
+          const s = await (await fetch(API + '/api/settings')).json();
+          Object.assign(CFG, s.settings || {});
+          route(true);
+      }
+      catch (e) {
+          console.warn(e);
+      } }
+      const T = (h, r) => `<div class="tw"><table><thead><tr>${h.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${r || `<tr><td colspan="${h.length}">Nothing here yet</td></tr>`}</tbody></table></div>`;
+      const bd = (t, c = '') => `<span class="bd ${c}">${E(t)}</span>`, when = b => E(b.date + ' · ' + b.time);
+      const by = s => BK.filter(b => b.status === s);
+      const head = (t, s, x = '') => `<div class="hd"><div><h1 class="t">${t}</h1><p class="sub">${s}</p></div><div class="fl">${x}</div></div>`;
+      const tile = (h, p, l, c = '') => `<a class="tile ${c}" href="#${l}"><h3>${h}</h3><p>${p}</p></a>`;
+      const sv = p => `<svg viewBox="0 0 24 24">${p}</svg>`, IC = { dash: sv('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'), bookings: sv('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>'), fleet: sv('<path d="M3 17v-4l2-6h14l2 6v4M3 13h18M6 17v2M18 17v2"/>'), drivers: sv('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'), reports: sv('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6"/>'), analytics: sv('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), users: sv('<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 4.5a3.5 3.5 0 0 1 0 7M22 20c0-2.5-1.5-4.3-4-5"/>'), settings: sv('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'), inbox: sv('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>'), check: sv('<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>'), cash: sv('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>'), pct: sv('<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>') };
+      // ---- Report helpers: date range, payment type, vehicle number, driver and customer IDs ----
+      const RF = { from: '', to: '', p: 'all' };
+      let EXP = null;
+      const PAYS = ['Cash', 'Card', 'Online transfer'];
+      const RK = { 'Booking report': 'report', 'Sales report': 'sales', 'Payment mode summary': 'paymode', 'Driver report': 'driverrep', 'Customer report': 'customer' };
+      const pad2 = n => String(n).padStart(2, '0'), iso = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+      const RP = { all: ['All time', () => ['', '']], today: ['Today', () => { const t = new Date(); return [iso(t), iso(t)]; }], last7: ['Last 7 days', () => { const t = new Date(), s = new Date(); s.setDate(t.getDate() - 6); return [iso(s), iso(t)]; }], month: ['This month', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), t.getMonth(), 1)), iso(t)]; }], lmonth: ['Last month', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), t.getMonth() - 1, 1)), iso(new Date(t.getFullYear(), t.getMonth(), 0))]; }], year: ['This year', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), 0, 1)), iso(t)]; }] };
+      const fdt = s => { const d = new Date(s + 'T00:00:00'); return isNaN(d) ? E(s || '—') : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); };
+      const rangeTxt = () => !RF.from && !RF.to ? 'Showing all dates' : 'Showing ' + (RF.from ? fdt(RF.from) : 'the start') + ' to ' + (RF.to ? fdt(RF.to) : 'today');
+      const inR = b => (!RF.from || (b.date || '') >= RF.from) && (!RF.to || (b.date || '') <= RF.to);
+      const RFBAR = () => `<div class="rf"><label>From<input type="date" id="rfF" value="${RF.from}"></label><label>To<input type="date" id="rfT" value="${RF.to}"></label><button class="btn s" id="rfA">Apply</button><div class="rfp">${Object.entries(RP).map(([k, v]) => `<button class="btn o s ${RF.p == k ? 'on' : ''}" data-rp="${k}">${v[0]}</button>`).join('')}</div><p class="rfe" id="rfE"></p><p class="rft">${rangeTxt()}</p></div>`;
+      const RH = (t, s) => head(t, s, '<button class="btn o" onclick="print()">Print</button><button class="btn" id="ex">Export</button>');
+      const SB = x => `<div class="st"><small>${x[0]}</small><b>${x[1]}</b></div>`;
+      const trw = c => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`, gtr = c => `<tr class="grp">${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
+      const payBd = p => PAYS.includes(p) ? bd(p, p == 'Cash' ? 'ok' : p == 'Card' ? 'in' : '') : bd('Not set');
+      const fareOf = b => +b.fare || 0;
+      const plateOf = b => { const v = b.vehicle || '', f = FLEET.find(x => x.name + ' · ' + x.plate == v); return f ? f.plate : (v.includes(' · ') ? v.split(' · ').pop() : '') || '—'; };
+      const drvId = b => b.driverId || (DR.find(d => d.name == b.driver) || {}).id || '—';
+      const cn = s => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase(), nice = s => String(s || '').trim().replace(/\s+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      // Same first + last name = same customer. IDs are stable (based on each customer's first booking overall).
+      const custMap = () => { const m = {}; [...BK].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).forEach(b => { const k = cn(b.name); if (k && !m[k])
+          m[k] = 'CUS-' + String(Object.keys(m).length + 1).padStart(4, '0'); }); return m; };
+      // Sales-type reports use accepted and completed bookings inside the chosen dates
+      const paid = () => BK.filter(b => (b.status == 'Accepted' || b.status == 'Completed') && inR(b)).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      function setRF(f, t, p) { RF.from = f; RF.to = t; RF.p = p; route(); }
+      function applyRF() { const f = $('#rfF').value, t = $('#rfT').value; if (f && t && f > t)
+          return $('#rfE').textContent = 'The start date must be before the end date.'; setRF(f, t, ''); }
+      document.addEventListener('click', e => { const t = e.target; if (t.dataset.rp) {
+          const r = RP[t.dataset.rp][1]();
+          return setRF(r[0], r[1], t.dataset.rp);
+      } if (t.id == 'rfA')
+          applyRF(); });
+      document.addEventListener('change', e => { if (e.target.id == 'rfF' || e.target.id == 'rfT')
+          applyRF(); });
+      const V = {
+          dash() {
+              const n = by('New').length, a = by('Accepted'), rej = by('Rejected').length, rev = a.reduce((x, b) => x + (+b.fare || 0), 0), dOn = DR.filter(d => d.status == 'Available').length, h = new Date().getHours(), nm = ($('#un').textContent || '').split('@')[0], rate = a.length + rej ? Math.round(100 * a.length / (a.length + rej)) : 0, tot = BK.length, p1 = n / (tot || 1) * 100, p2 = p1 + a.length / (tot || 1) * 100, p3 = p2 + rej / (tot || 1) * 100, rec = [...BK].sort((x, y) => new Date(y.createdAt) - new Date(x.createdAt)).slice(0, 5), kp = (i, c, l, v, sb, hr) => `<a class="st kp" href="#${hr}"><span class="ic ${c}">${IC[i]}</span><div><small>${l}</small><b>${v}</b><em>${sb}</em></div></a>`, lg = (c, l, v) => `<p><i style="background:${c}"></i>${l}<span>${v}</span></p>`, fr = (i, c, l, v, hr) => `<a class="rw" href="#${hr}"><span class="ic ${c}">${IC[i]}</span><div><b>${l}</b></div><div class="r2"><span>${v}</span></div></a>`;
+              return `<div class="hero"><svg class="hv" viewBox="0 0 300 130" preserveAspectRatio="none"><path d="M0 130V70l50-25 40 18 60-40 50 30 50-20 50 25v72z" fill="#fff" opacity=".16"/><path d="M0 130v-30l70-20 70 15 80-25 80 20v40z" fill="#fff" opacity=".26"/></svg><h2>Good ${h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'}${nm ? ', ' + E(nm) : ''}</h2><p>${n ? `${n} new request${n > 1 ? 's are' : ' is'} waiting for a decision.` : 'No requests are waiting. You are all caught up.'}</p></div>
+<div class="g g4">${kp('inbox', 'b', 'New requests', n, 'Waiting for a decision', 'new')}${kp('check', 'g', 'Accepted trips', a.length, 'Confirmed bookings', 'accepted')}${kp('cash', 'p', 'Revenue', LKR(rev), 'From accepted bookings', 'analytics')}${kp('pct', 'o', 'Acceptance rate', rate + '%', 'Accepted vs rejected', 'analytics')}</div>
+<div class="dg"><div class="cd"><div class="ch"><h4>Recent requests</h4><a href="#bookings">View all</a></div>${rec.map(b => `<a class="rw" href="#booking/${E(b.id)}"><span class="ic b">${IC.fleet}</span><div><b>${E(b.pickup)} to ${E(b.dropoff)}</b><small>${E(b.name)} · ${when(b)}</small></div><div class="r2"><span>${LKR(b.fare)}</span>${bd(b.status, b.status == 'Accepted' || b.status == 'Completed' ? 'ok' : b.status == 'Rejected' ? 'no' : '')}</div></a>`).join('') || '<p class="sub">No bookings yet. Requests from the website will appear here.</p>'}</div>
+<div><div class="cd"><div class="ch"><h4>Booking overview</h4></div><div class="ov"><div class="dn" style="background:conic-gradient(#f59e0b 0 ${p1}%,#10b981 ${p1}% ${p2}%,#ef4444 ${p2}% ${p3}%,#cbd5e1 ${p3}% 100%)"><div><b>${tot}</b><small>Total</small></div></div><div class="lg">${lg('#f59e0b', 'New', n)}${lg('#10b981', 'Accepted', a.length)}${lg('#ef4444', 'Rejected', rej)}${lg('#cbd5e1', 'Other', tot - n - a.length - rej)}</div></div></div>
+<div class="cd"><div class="ch"><h4>Fleet and team</h4></div>${fr('fleet', 'b', 'Vehicles', FLEET.length, 'fleet')}${fr('drivers', 'g', 'Drivers available', dOn + ' of ' + DR.length, 'drivers')}${fr('users', 'p', 'User accounts', US.length, 'users')}</div></div></div>`;
+          },
+          bookings() {
+              const old = by('New').filter(b => Date.now() - new Date(b.createdAt) > 2 * 36e5);
+              return head('Bookings', 'Review requests from the website and manage confirmed trips') + `<div class="g g3">${tile('New requests', '<big>' + by('New').length + '</big>', 'new')}${tile('Accepted', '<big>' + by('Accepted').length + '</big>', 'accepted', 'green')}${tile('Rejected', '<big>' + by('Rejected').length + '</big>', 'rejected', 'red')}</div><div class="cd"><h4>Needs attention</h4>${old.map(b => `<p>${bd('Waiting 2h+')} ${E(b.id)} ${E(b.name)} · ${E(b.pickup)} to ${E(b.dropoff)}</p>`).join('') || '<p>Nothing waiting.</p>'}</div>`;
+          },
+          new() { return head('New requests', by('New').length + ' waiting for a decision') + T(['Booking ID', 'Customer', 'Mobile', 'From', 'To', 'Type', 'Vehicle', 'Pickup', 'Fare', 'Action'], by('New').map(b => `<tr data-go="booking/${E(b.id)}"><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.type || '—')}</td><td>${E(b.vehicle || '—')}</td><td>${when(b)}</td><td>${LKR(b.fare)}</td><td><button class="btn g s">Accept</button> <button class="btn r s" data-dec="${E(b.id)}">Decline</button></td></tr>`).join('')); },
+          accepted() { return head('Accepted requests', by('Accepted').length + ' confirmed trips') + T(['Booking ID', 'Customer', 'From', 'To', 'Vehicle', 'Pickup', 'Driver', 'Status'], by('Accepted').map(b => `<tr data-go="booking/${E(b.id)}"><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle || '—')}</td><td>${when(b)}</td><td>${E(b.driver || 'Not assigned')}</td><td>${b.driver ? bd('Confirmed', 'ok') : bd('Assign driver')}</td></tr>`).join('')); },
+          rejected() { return head('Rejected requests', by('Rejected').length + ' declined') + T(['Booking ID', 'Customer', 'Mobile', 'From', 'To', 'Vehicle', 'Reason', 'Customer notified'], by('Rejected').map(b => `<tr><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle || '—')}</td><td>${bd(b.reason || '—', 'no')}</td><td>Email sent</td></tr>`).join('')); },
+          booking(id) {
+              const b = BK.find(x => x.id == id);
+              if (!b)
+                  return head('Not found', '');
+              const op = (a, v) => a.map(x => `<option ${x == v ? 'selected' : ''}>${E(x)}</option>`).join('');
+              return head('Booking ' + E(b.id), bd(b.status, b.status == 'Accepted' ? 'ok' : b.status == 'Rejected' ? 'no' : '') + ' Received ' + new Date(b.createdAt).toLocaleString() + ' via website') + `<div class="two"><div class="cd"><h4>Trip</h4><p>${E(b.pickup)} → ${E(b.dropoff)} · ${when(b)}</p><p>Passengers ${E(b.passengers)} · Nationality ${E(b.nationality)}</p><p>Special request: ${E(b.requests || 'none')}</p><hr><h4 style="margin-top:12px">Customer</h4><p>${E(b.name)} · ${E(b.phone)} · ${E(b.email)}</p><hr><h4 style="margin-top:12px">Fare</h4><div class="row"><p>${E(b.vehicle || b.type || 'Vehicle not chosen')}</p><b>${LKR(b.fare)}</b></div></div>
+<div class="cd"><h4>Assign</h4><select id="dr"><option value="">Driver…</option>${op(DR.filter(d => d.status == 'Available' || d.name == b.driver).map(d => d.name), b.driver)}</select><br><br><select id="ve"><option value="">Vehicle…</option>${op(FLEET.map(f => f.name + ' · ' + f.plate), b.vehicle)}</select><br><br><select id="pm"><option value="">Payment type…</option>${op(PAYS, b.payment)}</select><br><br><button class="btn g" style="width:100%" data-acc="${E(b.id)}">Accept and notify</button><br><br><button class="btn r" style="width:100%" data-dec="${E(b.id)}">Decline with reason</button><br><br><button class="btn o" style="width:100%" data-sv="${E(b.id)}">Save driver, vehicle and payment</button></div></div>`;
+          },
+          fleet() { const TL = { Sedan: 'Sedan Cars', KDH: 'KDH', Hatchback: 'Hatchback' }; return head('Fleet', FLEET.length + ' vehicles', '<button class="btn" id="addVe">+ Add vehicle</button>') + T(['Vehicle', 'Type', 'Plate', 'Colour', 'Seats', 'A/C', 'Action'], FLEET.map(f => `<tr><td>${E(f.name)}<br><small>${E(f.model || '')}</small></td><td>${E(TL[f.type] || f.type)}</td><td>${E(f.plate)}</td><td>${E(f.color || '—')}</td><td>${E(f.seats || '—')}</td><td>${E(f.ac || '—')}</td><td><button class="btn o s" data-edv="${E(f.id)}">Edit</button> <button class="btn r s" data-rmv="${E(f.id)}">Remove</button></td></tr>`).join('')); },
+          drivers() { const c = s => DR.filter(d => d.status == s).length; return head('Drivers', DR.length + ' registered · ' + c('Available') + ' available · ' + c('Unavailable') + ' unavailable · ' + c('On trip') + ' on trip', '<button class="btn" id="addDr">+ Add driver</button>') + T(['Name', 'Phone', 'City', 'Licence', 'Availability', 'Since', 'Action'], DR.map(d => `<tr><td>${E(d.name)}</td><td>${E(d.phone)}</td><td>${E(d.city || '—')}</td><td>${E(d.license || '—')}</td><td><div class="sb">${['Available', 'Unavailable', 'On trip'].map(s => `<button class="${s.replace(' ', '')} ${d.status == s ? 'on' : ''}" data-st="${s}" data-id="${E(d.id)}">${s}</button>`).join('')}</div></td><td>${new Date(d.updatedAt).toLocaleString()}</td><td><button class="btn o s" data-edd="${E(d.id)}">Edit</button> <button class="btn r s" data-rmd="${E(d.id)}">Remove</button></td></tr>`).join('')); },
+          reports() { const L = [['Booking report', 'report'], ['Sales report', 'sales'], ['Payment mode summary', 'paymode'], ['Cash and flow'], ['Refund report'], ['Driver report', 'driverrep'], ['Vehicle utilisation'], ['Customer report', 'customer']]; return head('Reports', 'Choose a report, set a date range, then print or export') + `<div class="g g4">${L.map(x => x[1] ? tile(x[0], 'Open ›', x[1], 'aqua') : `<a class="tile aqua" onclick="alert('${x[0]}: coming soon')"><h3>${x[0]}</h3><p>Open ›</p></a>`).join('')}</div>`; },
+          report() { const R = BK.filter(inR), c = s => R.filter(b => b.status === s).length; EXP = { name: 'booking-report', head: ['Booking ID', 'Customer', 'Mobile', 'From', 'To', 'Vehicle', 'Pickup', 'Status'], rows: R.map(b => [b.id, b.name, b.phone, b.pickup, b.dropoff, b.vehicle || '', b.date + ' ' + b.time, b.status]) }; return RH('Booking report', 'All website bookings') + RFBAR() + `<div class="g g5">${[['Total bookings', R.length], ['Accepted', c('Accepted')], ['Rejected', c('Rejected')], ['Cancelled', c('Cancelled')], ['Completed', c('Completed')]].map(SB).join('')}</div>` + T(EXP.head, R.map(b => `<tr><td>${E(b.id)}</td><td>${E(b.name)}</td><td>${E(b.phone)}</td><td>${E(b.pickup)}</td><td>${E(b.dropoff)}</td><td>${E(b.vehicle || '—')}</td><td>${when(b)}</td><td>${bd(b.status, b.status == 'Accepted' || b.status == 'Completed' ? 'ok' : b.status == 'Rejected' ? 'no' : '')}</td></tr>`).join('')); },
+          sales() { const r = paid(), tot = r.reduce((s, b) => s + fareOf(b), 0), sm = p => r.filter(b => b.payment == p).reduce((s, b) => s + fareOf(b), 0); EXP = { name: 'sales-report', head: ['Booking ID', 'Date', 'Vehicle number', 'Cash / Card', 'Price'], rows: r.map(b => [b.id, b.date, plateOf(b), b.payment || '', fareOf(b)]) }; return RH('Sales report', 'Accepted and completed bookings') + RFBAR() + `<div class="g g5">${[['Total sales', LKR(tot)], ['Bookings', r.length], ['Cash', LKR(sm('Cash'))], ['Card', LKR(sm('Card'))], ['Online transfer', LKR(sm('Online transfer'))]].map(SB).join('')}</div>` + T(EXP.head, r.length ? r.map(b => trw([E(b.id), fdt(b.date), E(plateOf(b)), payBd(b.payment), LKR(fareOf(b))])).join('') + `<tr class="tot"><td>Total</td><td></td><td></td><td></td><td>${LKR(tot)}</td></tr>` : ''); },
+          paymode() { const r = paid(), n = p => r.filter(b => b.payment == p).length; EXP = { name: 'payment-mode-summary', head: ['Booking ID', 'Date', 'Payment type'], rows: r.map(b => [b.id, b.date, b.payment || '']) }; return RH('Payment mode summary', 'Payment type for each accepted or completed booking') + RFBAR() + `<div class="g g4">${[['Card', n('Card')], ['Cash', n('Cash')], ['Online transfer', n('Online transfer')], ['Not set', r.filter(b => !PAYS.includes(b.payment)).length]].map(SB).join('')}</div>` + T(EXP.head, r.map(b => trw([E(b.id), fdt(b.date), payBd(b.payment)])).join('')); },
+          driverrep() { const r = paid().filter(b => b.driver), g = {}; r.forEach(b => { const id = drvId(b), k = id + '|' + b.driver; (g[k] = g[k] || { id: id, name: b.driver, t: [] }).t.push(b); }); const L = Object.values(g).sort((a, b) => String(a.id).localeCompare(String(b.id))), csv = []; let h = ''; L.forEach(d => { const al = d.t.reduce((s, b) => s + fareOf(b), 0); h += gtr([E(d.id), E(d.name), LKR(al), d.t.length + (d.t.length == 1 ? ' trip' : ' trips'), '', '', '']); d.t.forEach(b => { h += trw(['', '', '', LKR(fareOf(b)), E(b.pickup), E(b.dropoff), E(nice(b.name))]); csv.push([d.id, d.name, al, fareOf(b), b.pickup, b.dropoff, nice(b.name)]); }); }); EXP = { name: 'driver-report', head: ['Driver ID', 'Driver name', 'Allocated amount', 'Trip (amount)', 'From', 'To', 'Customer'], rows: csv }; return RH('Driver report', 'Allocated amount and trips for each driver') + RFBAR() + `<div class="g g4">${[['Drivers', L.length], ['Trips', r.length], ['Total allocated', LKR(r.reduce((s, b) => s + fareOf(b), 0))]].map(SB).join('')}</div>` + T(EXP.head, h); },
+          customer() { const m = custMap(), r = BK.filter(inR).sort((a, b) => (a.date || '').localeCompare(b.date || '')), g = {}; r.forEach(b => { const k = cn(b.name); if (!k)
+              return; (g[k] = g[k] || { k: k, name: nice(b.name), t: [] }).t.push(b); }); const L = Object.values(g).sort((a, b) => m[a.k].localeCompare(m[b.k])), csv = []; let h = ''; L.forEach(c => { h += gtr([m[c.k], E(c.name), c.t.length, '', '', '', '']); c.t.forEach(b => { h += trw(['', '', '', fdt(b.date), E(b.pickup), E(b.dropoff), E(b.driver || '—')]); csv.push([m[c.k], c.name, c.t.length, b.date, b.pickup, b.dropoff, b.driver || '']); }); }); EXP = { name: 'customer-report', head: ['Customer ID', 'Customer name', 'Trips requested', 'Date', 'From', 'To', 'Driver'], rows: csv }; return RH('Customer report', 'Trips requested by each customer (same first and last name)') + RFBAR() + `<div class="g g4">${[['Customers', L.length], ['Trips requested', r.length], ['Repeat customers', L.filter(c => c.t.length > 1).length]].map(SB).join('')}</div>` + T(EXP.head, h); },
+          analytics() {
+              const m = {};
+              BK.forEach(b => { const k = b.createdAt.slice(0, 7); m[k] = (m[k] || 0) + 1; });
+              const ks = Object.keys(m).sort().slice(-6), mx = Math.max(1, ...ks.map(k => m[k])), d = {};
+              BK.forEach(b => d[b.dropoff] = (d[b.dropoff] || 0) + 1);
+              const td = Object.entries(d).sort((a, b) => b[1] - a[1]).slice(0, 5);
+              return head('Analytics', 'Bookings from the website') + `<div class="g g4"><div class="st"><small>Bookings</small><b>${BK.length}</b></div><div class="st"><small>Revenue (accepted)</small><b>${LKR(by('Accepted').reduce((s, b) => s + (+b.fare || 0), 0))}</b></div></div><div class="two"><div class="cd"><h4>Bookings per month</h4><div class="bars">${ks.map(k => `<div><i style="height:${m[k] / mx * 170}px"></i>${k.slice(5)}/${k.slice(2, 4)} (${m[k]})</div>`).join('') || 'No data yet'}</div></div><div class="cd"><h4>Top destinations</h4>${td.map(x => `<p>${E(x[0])}<div class="bar" style="width:${x[1] / td[0][1] * 100}%"></div></p>`).join('')}</div></div>`;
+          },
+          settings() {
+              const f = (k, l, u) => `<label>${l}<input data-k="${k}" value="${E(CFG[k])}"></label>`;
+              return head('Settings', 'Rules the website and back office follow', `<a class="btn o" href="#users" style="text-decoration:none">Users and roles</a><button class="btn" id="sv">Save changes</button>`) + `<div class="g g3 set"><div class="cd"><h4>Booking rules</h4>${f('minNotice', 'Minimum notice (hrs)')}${f('maxDuration', 'Maximum duration (days)')}${f('buffer', 'Buffer between trips (min)')}${f('grace', 'No-show grace (min)')}</div><div class="cd"><h4>Rates (LKR per km)</h4>${f('rateSedan', 'Sedan')}${f('rateKDH', 'KDH')}${f('rateHatch', 'Hatch')}<h4 style="margin-top:14px">Cancellation policy</h4><p>48 hrs or more ${bd('Free', 'ok')}</p><p>24 to 48 hrs ${bd('25% fee')}</p><p>Under 24 hrs ${bd('50% fee', 'no')}</p></div><div class="cd"><h4>Vehicle categories</h4><p class="sub">Applies instantly. Disabled categories show as unavailable on the website.</p>${['Sedan', 'KDH', 'Hatchback'].map(c => { const on = (CFG.categories || {})[c] !== false; return `<div class="row" style="align-items:center;margin:12px 0"><span>${c}</span><button class="sw ${on ? 'on' : 'off'}" data-cat="${c}">${on ? 'Enabled' : 'Disabled'}</button></div>`; }).join('')}</div></div>`;
+          },
+          users() { return head('Users and roles', US.length + ' accounts', '<button class="btn" id="addUs">+ Add user</button>') + T(['Name', 'Email', 'Phone', 'Role', 'Status', 'Action'], US.map(u => `<tr><td>${E(u.name)}</td><td>${E(u.email)}</td><td>${E(u.phone || '—')}</td><td>${bd(u.role, 'in')}</td><td>${bd(u.status, u.status == 'Active' ? 'ok' : 'no')}</td><td><button class="btn o s" data-edu="${E(u.id)}">Edit</button> <button class="btn r s" data-rmu="${E(u.id)}">Remove</button></td></tr>`).join('')); }
+      };
+      const NAV = [['Dashboard', 'dash'], ['Bookings', 'bookings'], ['Fleet', 'fleet'], ['Drivers', 'drivers'], ['Reports', 'reports'], ['Analytics', 'analytics'], ['Users', 'users'], ['Settings', 'settings']], GRP = { new: 'bookings', accepted: 'bookings', rejected: 'bookings', booking: 'bookings', report: 'reports', sales: 'reports', paymode: 'reports', driverrep: 'reports', customer: 'reports' };
+      function route(soft) {
+          if (!auth.currentUser)
+              return;
+          if (soft && [...document.querySelectorAll('#app input,#app select')].some(i => i.value !== i.defaultValue))
+              return;
+          let [r, a] = (location.hash.slice(1) || 'dash').split('/');
+          if (!V[r])
+              r = 'dash';
+          const on = GRP[r] || r;
+          $('#q').placeholder = 'Search ' + (SC[r] || SC.dash).t + '…';
+          $('#nv').innerHTML = NAV.map(n => `<a href="#${n[1]}" class="${n[1] == on ? 'on' : ''}" title="${n[0]}">${IC[n[1]]}<span>${n[0]}</span></a>`).join('');
+          $('#bell').classList.toggle('dot', by('New').length > 0);
+          $('#app').innerHTML = V[r](a);
+      }
+      let STACK = [];
+      const syncBack = () => { $('#bk').disabled = STACK.length < 2; };
+      addEventListener('hashchange', () => { const h = location.hash || '#dash'; if (STACK[STACK.length - 2] === h)
+          STACK.pop();
+      else if (STACK[STACK.length - 1] !== h)
+          STACK.push(h); syncBack(); $('#q').value = ''; $('#qr').classList.add('hidden'); route(); });
+      $('#bk').onclick = () => history.back();
+      // Search: bookings, drivers and vehicles
+      const SC = { dash: { t: 'dashboard', k: '', p: 1 }, bookings: { t: 'bookings', k: 'b', p: 1 }, new: { t: 'new requests', k: 'b', s: 'New' }, accepted: { t: 'accepted trips', k: 'b', s: 'Accepted' }, rejected: { t: 'rejected requests', k: 'b', s: 'Rejected' }, booking: { t: 'bookings', k: 'b' }, report: { t: 'bookings', k: 'b' }, sales: { t: 'bookings', k: 'b' }, paymode: { t: 'bookings', k: 'b' }, driverrep: { t: 'drivers', k: 'd' }, customer: { t: 'bookings', k: 'b' }, reports: { t: 'reports', k: 'r' }, analytics: { t: 'bookings', k: 'b' }, fleet: { t: 'vehicles', k: 'v' }, drivers: { t: 'drivers', k: 'd' }, users: { t: 'users', k: 'u' }, settings: { t: 'settings', k: 's' } };
+      const TILES = { dash: [['Bookings', 'New, accepted and rejected requests', 'bookings'], ['New requests', 'Waiting for a decision', 'new'], ['Accepted', 'Confirmed trips', 'accepted'], ['Revenue', 'Accepted bookings total', 'analytics'], ['Acceptance rate', 'Accepted vs rejected', 'analytics'], ['Fleet', 'Vehicles', 'fleet'], ['Vehicles available', 'Fleet size', 'fleet'], ['Payments', 'Revenue and reports', 'reports'], ['Reports', 'Booking report and more', 'reports'], ['Analytics', 'Trends and revenue', 'analytics'], ['Drivers', 'Availability and details', 'drivers'], ['Drivers available', 'Live driver availability', 'drivers'], ['Users', 'Accounts and roles', 'users'], ['Settings', 'Rules, rates and vehicle categories', 'settings']], bookings: [['New requests', 'Waiting for a decision', 'new'], ['Accepted', 'Confirmed trips', 'accepted'], ['Rejected', 'Declined requests', 'rejected'], ['Needs attention', 'Requests waiting over 2 hours', 'bookings']] };
+      const SETS = [['minNotice', 'Minimum notice (hrs)'], ['maxDuration', 'Maximum duration (days)'], ['buffer', 'Buffer between trips (min)'], ['grace', 'No-show grace (min)'], ['rateSedan', 'Sedan rate per km'], ['rateKDH', 'KDH rate per km'], ['rateHatch', 'Hatch rate per km']], REPS = ['Booking report', 'Sales report', 'Payment mode summary', 'Cash and flow', 'Refund report', 'Driver report', 'Vehicle utilisation', 'Customer report'];
+      const curPage = () => (location.hash.slice(1) || 'dash').split('/')[0];
+      function doSearch() {
+          const q = $('#q').value.trim().toLowerCase(), box = $('#qr');
+          if (!q) {
+              box.classList.add('hidden');
+              return;
+          }
+          const sc = SC[curPage()] || SC.dash, hit = (o, ks) => ks.some(k => String(o[k] || '').toLowerCase().includes(q)), r = [], has = c => sc.k.includes(c);
+          if (sc.p)
+              (TILES[curPage()] || []).filter(t => (t[0] + ' ' + t[1]).toLowerCase().includes(q)).forEach(t => r.push(['Section', t[0], t[1], t[2]]));
+          if (has('b'))
+              BK.filter(b => (!sc.s || b.status === sc.s) && hit(b, ['id', 'name', 'phone', 'email', 'pickup', 'dropoff', 'status'])).slice(0, 8).forEach(b => r.push(['Booking', b.id + ' · ' + b.name, b.pickup + ' → ' + b.dropoff + ' · ' + b.status, 'booking/' + b.id]));
+          if (has('d'))
+              DR.filter(d => hit(d, ['name', 'phone', 'city', 'license', 'nic', 'email', 'status'])).slice(0, 8).forEach(d => r.push(['Driver', d.name, d.phone + (d.city ? ' · ' + d.city : '') + ' · ' + d.status, 'drivers']));
+          if (has('v'))
+              FLEET.filter(f => hit(f, ['name', 'model', 'plate', 'type', 'color'])).slice(0, 8).forEach(f => r.push(['Vehicle', f.name, f.type + ' · ' + f.plate, 'fleet']));
+          if (has('u'))
+              US.filter(u => hit(u, ['name', 'email', 'phone', 'role', 'status'])).forEach(u => r.push(['User', u.name, u.email + ' · ' + u.role, 'users']));
+          if (has('s'))
+              SETS.filter(s => s[1].toLowerCase().includes(q)).forEach(s => r.push(['Setting', s[1], 'Click to edit', 'settings:' + s[0]]));
+          if (has('r'))
+              REPS.filter(s => s.toLowerCase().includes(q)).forEach(s => r.push(['Report', s, RK[s] ? 'Open report' : 'Coming soon', RK[s] || 'reports']));
+          box.innerHTML = r.length ? r.map(x => `<div class="si" data-sgo="${E(x[3])}"><div class="k">${x[0]}</div><div class="t1">${E(x[1])}</div><div class="t2">${E(x[2])}</div></div>`).join('') : '<div class="si"><div class="t2">Nothing found on this page</div></div>';
+          box.classList.remove('hidden');
+      }
+      $('#q').addEventListener('input', doSearch);
+      $('#q').addEventListener('focus', doSearch);
+      $('#q').addEventListener('keydown', e => { if (e.key == 'Enter')
+          document.querySelector('#qr .si[data-sgo]')?.click(); if (e.key == 'Escape') {
+          e.target.value = '';
+          $('#qr').classList.add('hidden');
+      } });
+      $('#qb').onclick = () => { $('#q').focus(); doSearch(); };
+      document.addEventListener('click', e => { const s = e.target.closest('.si[data-sgo]'); if (s) {
+          const [p, k] = s.dataset.sgo.split(':');
+          location.hash = p;
+          if (k)
+              setTimeout(() => document.querySelector(`[data-k="${k}"]`)?.focus(), 60);
+          $('#q').value = '';
+          $('#qr').classList.add('hidden');
+      }
+      else if (!e.target.closest('#sbox'))
+          $('#qr').classList.add('hidden'); });
+      const DIST = ['Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'];
+      function openForm(c) {
+          const d = c.data || {}, m = document.createElement('div'), x = () => { m.remove(); removeEventListener('keydown', esc); }, esc = e => e.key == 'Escape' && x(), sg = c.seg;
+          m.className = 'mo';
+          const fld = f => `<label${f.w ? ' class="w"' : ''}><span>${f.l}${f.r ? ' <i>*</i>' : ''}</span>${f.t == 'select' ? `<select id="f_${f.k}"><option value="">${f.ph || 'Select'}</option>${f.o.map(o => { const [a, b] = Array.isArray(o) ? o : [o, o]; return `<option value="${E(a)}" ${a == d[f.k] ? 'selected' : ''}>${E(b)}</option>`; }).join('')}</select>` : `<input id="f_${f.k}" type="${f.t || 'text'}" value="${E(d[f.k] ?? '')}">`}</label>`;
+          m.innerHTML = `<div class="mb"><h3>${c.title}</h3><div class="fg">${c.fields.map(fld).join('')}</div>${sg ? `<h3>${sg.title}</h3><div class="seg ${sg.nb ? 'nb' : ''}">${sg.o.map(o => `<label class="${o[2] || ''}"><input type="radio" name="f_seg" value="${E(o[0])}" ${(d[sg.k] || sg.def) == o[0] ? 'checked' : ''}><span>${o[1] || o[0]}</span></label>`).join('')}</div>` : ''}<p id="merr"></p><div class="ac"><button class="btn o" id="mc">Cancel</button><button class="btn" id="ms">${c.save}</button></div></div>`;
+          document.body.appendChild(m);
+          addEventListener('keydown', esc);
+          m.onclick = e => { if (e.target == m || e.target.id == 'mc')
+              x(); };
+          m.querySelector('#ms').onclick = async () => {
+              const b = {};
+              c.fields.forEach(f => b[f.k] = m.querySelector('#f_' + f.k).value.trim());
+              if (sg)
+                  b[sg.k] = m.querySelector('[name=f_seg]:checked').value;
+              const miss = c.fields.filter(f => f.r && !b[f.k]).map(f => f.l);
+              if (miss.length)
+                  return m.querySelector('#merr').textContent = miss.join(', ') + (miss.length > 1 ? ' are' : ' is') + ' required.';
+              try {
+                  await c.onSave(b);
+                  x();
+                  load();
+              }
+              catch (e) {
+                  m.querySelector('#merr').textContent = e.message;
+              }
+          };
+          m.querySelector('input,select').focus();
+      }
+      const save = (p, id, b) => api(id ? p + '/' + id : p, { method: id ? 'PATCH' : 'POST', body: JSON.stringify(b) });
+      const openDr = d => openForm({ title: d ? 'Edit driver' : 'Driver details', data: d, save: d ? 'Save changes' : 'Save driver', fields: [{ k: 'firstName', l: 'First name', r: 1 }, { k: 'lastName', l: 'Last name' }, { k: 'phone', l: 'Phone number', t: 'tel', r: 1 }, { k: 'email', l: 'Email', t: 'email' }, { k: 'nic', l: 'NIC No' }, { k: 'license', l: 'Driving licence' }, { k: 'address', l: 'Address', w: 1 }, { k: 'city', l: 'City (district)', t: 'select', o: DIST, ph: 'Select district' }], seg: { title: 'Availability', k: 'status', def: 'Available', o: [['Available', '', 'stAvailable'], ['Unavailable', '', 'stUnavailable'], ['On trip', '', 'stOntrip']] }, onSave: b => save('/drivers', d?.id, b) });
+      const openVe = d => openForm({ title: d ? 'Edit vehicle' : 'Vehicle details', data: d, save: d ? 'Save changes' : 'Save vehicle', fields: [{ k: 'name', l: 'Vehicle name', r: 1 }, { k: 'model', l: 'Vehicle model', r: 1 }, { k: 'plate', l: 'Number plate', r: 1 }, { k: 'type', l: 'Vehicle type', t: 'select', r: 1, o: [['Sedan', 'Sedan Cars'], ['KDH', 'KDH'], ['Hatchback', 'Hatchback']], ph: 'Select vehicle type' }, { k: 'color', l: 'Vehicle colour' }, { k: 'seats', l: 'Vehicle seats', t: 'number' }], seg: { title: 'Air conditioning', k: 'ac', def: 'A/C', nb: 1, o: [['A/C'], ['Non A/C']] }, onSave: b => save('/fleet', d?.id, b) });
+      const openUs = d => openForm({ title: d ? 'Edit user' : 'User details', data: d, save: d ? 'Save changes' : 'Save user', fields: [{ k: 'name', l: 'Full name', r: 1 }, { k: 'email', l: 'Email', t: 'email', r: 1 }, { k: 'phone', l: 'Phone', t: 'tel' }, { k: 'role', l: 'Role', t: 'select', r: 1, o: ['Owner', 'Dispatcher', 'Driver', 'Accountant'], ph: 'Select role' }], seg: { title: 'Status', k: 'status', def: 'Active', o: [['Active', '', 'stAvailable'], ['Inactive', '', 'stUnavailable']] }, onSave: b => save('/users', d?.id, b) });
+      const patch = (id, body) => api('/bookings/' + encodeURIComponent(id), { method: 'PATCH', body: JSON.stringify(body) }).then(load).catch(e => alert(e.message));
+      document.addEventListener('click', e => {
+          const t = e.target;
+          if (t.dataset.acc)
+              return patch(t.dataset.acc, { status: 'Accepted', driver: $('#dr').value, driverId: ((DR.find(d => d.name == $('#dr').value)) || {}).id || '', vehicle: $('#ve').value, payment: $('#pm').value });
+          if (t.dataset.sv)
+              return api('/bookings/' + encodeURIComponent(t.dataset.sv), { method: 'PATCH', body: JSON.stringify({ driver: $('#dr').value, driverId: ((DR.find(d => d.name == $('#dr').value)) || {}).id || '', vehicle: $('#ve').value, payment: $('#pm').value }) }).then(() => { alert('Saved'); load(); }).catch(e => alert(e.message));
+          if (t.dataset.dec) {
+              const r = prompt('Reason for declining?');
+              return r && patch(t.dataset.dec, { status: 'Rejected', reason: r });
+          }
+          if (t.id == 'addDr')
+              return openDr();
+          if (t.dataset.edd)
+              return openDr(DR.find(x => x.id == t.dataset.edd));
+          if (t.dataset.st)
+              return api('/drivers/' + t.dataset.id, { method: 'PATCH', body: JSON.stringify({ status: t.dataset.st }) }).then(load).catch(e => alert(e.message));
+          if (t.dataset.rmd)
+              return confirm('Remove this driver?') && api('/drivers/' + t.dataset.rmd, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
+          if (t.id == 'addVe')
+              return openVe();
+          if (t.dataset.edv)
+              return openVe(FLEET.find(x => x.id == t.dataset.edv));
+          if (t.dataset.rmv)
+              return confirm('Remove this vehicle?') && api('/fleet/' + t.dataset.rmv, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
+          if (t.id == 'addUs')
+              return openUs();
+          if (t.dataset.edu)
+              return openUs(US.find(x => x.id == t.dataset.edu));
+          if (t.dataset.rmu)
+              return confirm('Remove this user?') && api('/users/' + t.dataset.rmu, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
+          if (t.dataset.cat) {
+              const c = t.dataset.cat, cats = { Sedan: true, KDH: true, Hatchback: true, ...(CFG.categories || {}) };
+              cats[c] = cats[c] === false;
+              return api('/settings', { method: 'POST', body: JSON.stringify({ categories: cats }) }).then(() => { CFG.categories = cats; route(); }).catch(e => alert(e.message));
+          }
+          if (t.id == 'sv') {
+              document.querySelectorAll('[data-k]').forEach(i => CFG[i.dataset.k] = i.value);
+              return api('/settings', { method: 'POST', body: JSON.stringify(CFG) }).then(() => alert('Saved')).catch(e => alert(e.message));
+          }
+          if (t.id == 'ex' && EXP) {
+              const c = '\ufeff' + [EXP.head, ...EXP.rows].map(r => r.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(new Blob([c], { type: 'text/csv;charset=utf-8' }));
+              a.download = EXP.name + '-' + (RF.from || 'start') + '-to-' + (RF.to || 'today') + '.csv';
+              a.click();
+              return;
+          }
+          const tr = t.closest('tr[data-go]');
+          if (tr && !t.closest('button'))
+              location.hash = tr.dataset.go;
+          else if (t.closest('tr[data-go]') && t.classList.contains('g'))
+              location.hash = t.closest('tr').dataset.go;
+      });
+      $('#lf').onsubmit = async (e) => { e.preventDefault(); $('#err').textContent = ''; try {
+          await signInWithEmailAndPassword(auth, $('#em').value, $('#pw').value);
+      }
+      catch {
+          $('#err').textContent = 'Invalid email or password.';
+      } };
+      $('#fp').onclick = async (e) => { e.preventDefault(); if (!$('#em').value)
+          return $('#err').textContent = 'Enter your email first.'; await sendPasswordResetEmail(auth, $('#em').value).catch(() => { }); $('#err').style.color = '#1c7a2f'; $('#err').textContent = 'If the account exists, a reset email was sent.'; };
+      $('#lo').onclick = e => { e.preventDefault(); signOut(auth); };
+      onAuthStateChanged(auth, u => { $('#login').classList.toggle('hidden', !!u); document.querySelector('.tsw.fx').classList.toggle('hidden', !!u); $('#shell').classList.toggle('hidden', !u); if (u) {
+          STACK = [location.hash || '#dash'];
+          syncBack();
+          $('#un').textContent = u.displayName || u.email;
+          $('#av').textContent = (u.displayName || u.email || '?')[0].toUpperCase();
+          load();
+          route();
+      } });
+      setInterval(() => auth.currentUser && load(), 10000);
+    </script>
+  </body>
+</html>
