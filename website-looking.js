@@ -9,9 +9,9 @@
   window.__lrOff?.(); // if this script was pasted before, remove the old copy first
 
   const RULES = [
-    ['email', /e-?mail/], ['date', /date/], ['time', /time/], ['dropoff', /drop|destination/],
+    ['email', /e-?mail/], ['flight', /flight/], ['endDate', /end\s*date|return date|check-?out/], ['date', /date/], ['time', /time/], ['dropoff', /drop|destination/],
     ['pickup', /pick|from/], ['phone', /phone|whatsapp|mobile|tel/], ['nationality', /national|country/],
-    ['passengers', /passenger|guests|people|seats/], ['requests', /request|message|note|comment/], ['name', /name/],
+    ['passengers', /passenger|guests|people|seats|travell?ers?/], ['requests', /request|message|note|comment/], ['type', /ride|vehicle|car type/], ['name', /name/],
   ];
   const labelOf = (el) => (el.labels?.[0]?.textContent || el.closest('label')?.textContent ||
     el.parentElement?.querySelector('label')?.textContent || el.parentElement?.parentElement?.querySelector('label')?.textContent || '');
@@ -25,7 +25,7 @@
     return (RULES.find(([, re]) => re.test(s)) || [])[0];
   };
   const hasEmail = (root) => !!root?.querySelector('input[type="email"], input[name*="mail" i], input[id*="mail" i]');
-  const isConfirm = (b) => /confirm booking/i.test((b.textContent || b.value || '').trim());
+  const isConfirm = (b) => /confirm booking|reserve your spot/i.test((b.textContent || b.value || '').trim());
 
   let busy = false;
   async function send(root, btn) {

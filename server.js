@@ -4,6 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
+import pg from 'pg';
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +15,7 @@ const app = express();
 // Middleware
 // Origins allowed to call the API from another site (the public website).
 // Set ALLOWED_ORIGINS in your environment as a comma-separated list.
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://lanka-rides-kappa.vercel.app,https://fast-travel-1.vercel.app,http://localhost:3000,http://localhost:5500,http://127.0.0.1:5500')
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://godakandasanchitha-eng.github.io,https://lanka-rides-kappa.vercel.app,https://fast-travel-1.vercel.app,http://localhost:3000,http://localhost:5500,http://127.0.0.1:5500')
   .split(',').map(s => s.trim()).filter(Boolean);
 
 app.use(cors((req, cb) => {
@@ -45,7 +47,7 @@ let settingsStore = {
   colors: 'Natural',
   fontSize: 'Default',
   displaySize: 'Default',
-  categories: { Sedan: true, KDH: true, Hatchback: true }, // shown on the public website
+  categories: { Sedan: true, SUV: true, KDH: true, Hatchback: true }, // shown on the public website
 };
 
 // Configure Nodemailer Transporter
@@ -161,9 +163,77 @@ app.post('/api/settings', requireStaff, (req, res) => {
 // Simple JSON-file storage so bookings, drivers and fleet survive restarts
 // (on hosts with a temporary disk this still resets on redeploy; use a real DB there).
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
+const COLLECTIONS = ['bookings', 'drivers', 'fleet', 'users'];
 let db = { bookings: [], drivers: [], fleet: [], users: [] };
 try { db = { ...db, ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) }; } catch {}
-const saveDb = () => { try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('Save failed:', e.message); } };
+
+// PostgreSQL storage (open it in pgAdmin: schema "backoffice").
+// If DATABASE_URL is not set, the app keeps using the JSON file only, exactly as before.
+const pool = process.env.DATABASE_URL
+  ? new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    })
+  : null;
+if (pool) pool.on('error', (e) => console.error('PostgreSQL pool error:', e.message));
+let pgReady = false; // only write to PostgreSQL after a successful load, so a failed start can never wipe it
+
+let pgQueue = Promise.resolve();
+const saveToPg = () => {
+  pgQueue = pgQueue.then(async () => {
+    const c = await pool.connect();
+    try {
+      await c.query('begin');
+      for (const k of COLLECTIONS) {
+        const rows = db[k] || [];
+        await c.query(`delete from backoffice.${k} where id <> all($1::text[])`, [rows.map((r) => String(r.id))]);
+        for (const r of rows) {
+          await c.query(
+            `insert into backoffice.${k} (id, data) values ($1, $2)
+             on conflict (id) do update set data = excluded.data, updated_at = now()`,
+            [String(r.id), JSON.stringify(r)]
+          );
+        }
+      }
+      if (db.settings) {
+        await c.query(
+          `insert into backoffice.settings (id, data) values ('main', $1)
+           on conflict (id) do update set data = excluded.data`,
+          [JSON.stringify(db.settings)]
+        );
+      }
+      await c.query('commit');
+    } catch (e) {
+      await c.query('rollback').catch(() => {});
+      console.error('PostgreSQL save failed:', e.message);
+    } finally {
+      c.release();
+    }
+  }).catch((e) => console.error('PostgreSQL connection failed:', e.message));
+};
+
+const saveDb = () => {
+  // the JSON file stays as a local backup copy
+  try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('Save failed:', e.message); }
+  if (pool && pgReady) saveToPg();
+};
+
+if (pool) {
+  try {
+    let found = 0;
+    for (const k of COLLECTIONS) {
+      const r = await pool.query(`select data from backoffice.${k} order by seq`);
+      if (r.rows.length) { db[k] = r.rows.map((x) => x.data); found += r.rows.length; }
+    }
+    const st = await pool.query(`select data from backoffice.settings where id = 'main'`);
+    if (st.rows[0]) db.settings = st.rows[0].data;
+    pgReady = true;
+    if (found) console.log(`PostgreSQL connected. Loaded ${found} records.`);
+    else { console.log('PostgreSQL connected. Tables are empty, copying current data into them.'); saveToPg(); }
+  } catch (e) {
+    console.error('PostgreSQL load failed, using the JSON file only:', e.message);
+  }
+}
 const bookingsStore = db.bookings;
 settingsStore = { ...settingsStore, ...(db.settings || {}) }; // restore saved settings
 const rateLimit = new Map(); // ip -> [timestamps]
@@ -337,6 +407,16 @@ async function notifyCustomer(b, kind) {
 // NOTIFY-END
 
 // PUBLIC: called by the website booking form
+// Website ride names (Saloon, SUV, Sedan, Van, Hatchback) -> back office vehicle category
+const vehicleType = (v) => {
+  const s = String(v || '').toLowerCase();
+  if (/suv|prado/.test(s)) return 'SUV';
+  if (/van|kdh/.test(s)) return 'KDH';
+  if (/hatch/.test(s)) return 'Hatchback';
+  if (/saloon|sedan/.test(s)) return 'Sedan';
+  return '';
+};
+
 app.post('/api/bookings', (req, res) => {
   try {
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.ip;
@@ -366,7 +446,10 @@ app.post('/api/bookings', (req, res) => {
       passengers: Math.min(Math.max(parseInt(b.passengers, 10) || 1, 1), 50),
       requests: clean(b.requests, 1000),
       vehicle: clean(b.vehicle, 60),
-      type: clean(b.type, 40),
+      type: vehicleType(b.type),
+      service: clean(b.service || b.type, 80),
+      flight: clean(b.flight, 30),
+      endDate: clean(b.endDate, 20),
       fare: Math.max(0, Number(b.fare) || 0),
       driver: '',
       driverId: '',
@@ -374,7 +457,7 @@ app.post('/api/bookings', (req, res) => {
       reason: '',
     };
 
-    const missing = ['pickup', 'dropoff', 'date', 'time', 'name', 'email', 'phone', 'nationality']
+    const missing = ['pickup', 'dropoff', 'date', 'name', 'email', 'phone']
       .filter(k => !booking[k]);
     if (missing.length) {
       return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
@@ -415,7 +498,7 @@ app.get('/api/bookings', requireStaff, (req, res) => {
 app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   const b = bookingsStore.find(x => x.id === req.params.id);
   if (!b) return res.status(404).json({ success: false, message: 'Booking not found.' });
-  const { status, driver, vehicle, reason, payment, driverId } = req.body || {};
+  const { status, driver, vehicle, reason, payment, driverId, fare } = req.body || {};
   const prevStatus = b.status;
   if (payment !== undefined && payment !== '' && !PAYMENT_TYPES.includes(payment)) {
     return res.status(400).json({ success: false, message: 'Invalid payment type.' });
@@ -431,6 +514,7 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   if (reason !== undefined) b.reason = clean(reason, 200);
   if (payment !== undefined) b.payment = payment;
   if (driverId !== undefined) b.driverId = clean(driverId, 40);
+  if (fare !== undefined && fare !== '') b.fare = Math.max(0, Number(fare) || 0);
   saveDb();
 
   // Tell the customer by email (and SMS) when a request is accepted or declined - only when the status changes
@@ -443,7 +527,7 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
 // PUBLIC: which vehicle categories are currently enabled (read by the website)
 app.get('/api/categories', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ success: true, categories: { Sedan: true, KDH: true, Hatchback: true, ...(settingsStore.categories || {}) } });
+  res.json({ success: true, categories: { Sedan: true, SUV: true, KDH: true, Hatchback: true, ...(settingsStore.categories || {}) } });
 });
 
 // DRIVERS (staff only)
