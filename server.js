@@ -12,9 +12,6 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Middleware
-// Origins allowed to call the API from another site (the public website).
-// Set ALLOWED_ORIGINS in your environment as a comma-separated list.
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://godakandasanchitha-eng.github.io,https://lanka-rides-kappa.vercel.app,https://fast-travel-1.vercel.app,http://localhost:3000,http://localhost:5500,http://127.0.0.1:5500')
   .split(',').map(s => s.trim()).filter(Boolean);
 
@@ -32,10 +29,8 @@ app.use((req, res, next) => /^\/(data|node_modules|server\.js|package|\.)/i.test
 // Serve static frontend assets
 app.use(express.static(__dirname));
 
-// In-memory OTP store (stores email -> { otp, expiresAt })
 const otpStore = new Map();
 
-// In-memory System Settings store
 let settingsStore = {
   onlineBookings: true,
   maintenanceMode: false,
@@ -104,17 +99,16 @@ let settingsStore = {
   brightness: 92,
   nightLight: false,
   adaptiveBrightness: true,
-  wallpaper: 'Live wallpaper',
+  wallpaper: 'Glassy V5',
   sleep: 'After 30 seconds of inactivity',
   autoRotate: true,
   screenSaver: 'Clock',
   colors: 'Natural',
   fontSize: 'Default',
   displaySize: 'Default',
-  categories: { Sedan: true, SUV: true, KDH: true, Hatchback: true }, // shown on the public website
+  categories: { Sedan: true, SUV: true, KDH: true, Hatchback: true },
 };
 
-// Configure Nodemailer Transporter
 const transporter = nodemailer.createTransport({
   service: process.env.EMAIL_SERVICE || 'gmail',
   auth: {
@@ -123,7 +117,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// API Endpoint: Send OTP
 app.post('/api/send-otp', async (req, res) => {
   try {
     const { email } = req.body;
@@ -132,10 +125,9 @@ app.post('/api/send-otp', async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes expiration
+    const expiresAt = Date.now() + 5 * 60 * 1000;
 
     otpStore.set(email.toLowerCase(), { otp, expiresAt });
-
     console.log(`[OTP DEBUG] Sent to ${email}: ${otp}`);
 
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
@@ -164,7 +156,6 @@ app.post('/api/send-otp', async (req, res) => {
   }
 });
 
-// API Endpoint: Verify OTP
 app.post('/api/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -196,7 +187,6 @@ app.post('/api/verify-otp', async (req, res) => {
   }
 });
 
-// API Endpoint: Get Current System Settings
 app.get('/api/settings', requireStaff, (req, res) => {
   try {
     return res.status(200).json({ success: true, settings: settingsStore });
@@ -206,7 +196,6 @@ app.get('/api/settings', requireStaff, (req, res) => {
   }
 });
 
-// API Endpoint: Update System Settings
 app.post('/api/settings', requireStaff, (req, res) => {
   try {
     const newSettings = req.body || {};
@@ -271,19 +260,11 @@ app.post('/api/settings', requireStaff, (req, res) => {
   }
 });
 
-
-// ---------------------------------------------------------------------------
-// BOOKINGS (website -> backoffice)
-// ---------------------------------------------------------------------------
-// Simple JSON-file storage so bookings, drivers and fleet survive restarts
-// (on hosts with a temporary disk this still resets on redeploy; use a real DB there).
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
 const COLLECTIONS = ['bookings', 'drivers', 'fleet', 'users'];
 let db = { bookings: [], drivers: [], fleet: [], users: [] };
 try { db = { ...db, ...JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) }; } catch {}
 
-// PostgreSQL storage (open it in pgAdmin: schema "backoffice").
-// If DATABASE_URL is not set, the app keeps using the JSON file only, exactly as before.
 const pool = process.env.DATABASE_URL
   ? new pg.Pool({
       connectionString: process.env.DATABASE_URL,
@@ -291,7 +272,7 @@ const pool = process.env.DATABASE_URL
     })
   : null;
 if (pool) pool.on('error', (e) => console.error('PostgreSQL pool error:', e.message));
-let pgReady = false; // only write to PostgreSQL after a successful load, so a failed start can never wipe it
+let pgReady = false;
 
 let pgQueue = Promise.resolve();
 const saveToPg = () => {
@@ -328,7 +309,6 @@ const saveToPg = () => {
 };
 
 const saveDb = () => {
-  // the JSON file stays as a local backup copy
   try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('Save failed:', e.message); }
   if (pool && pgReady) saveToPg();
 };
@@ -350,12 +330,11 @@ if (pool) {
   }
 }
 const bookingsStore = db.bookings;
-settingsStore = { ...settingsStore, ...(db.settings || {}) }; // restore saved settings
-const rateLimit = new Map(); // ip -> [timestamps]
+settingsStore = { ...settingsStore, ...(db.settings || {}) };
+const rateLimit = new Map();
 
 const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc';
 
-// Verifies a Firebase ID token (sent by the backoffice) using Google's REST API
 async function requireStaff(req, res, next) {
   try {
     const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -387,24 +366,16 @@ const settingObject = (key) => {
 };
 const PAYMENT_TYPES = ['Cash', 'Card', 'Online transfer'];
 
-// NOTIFY-START
-// ---------------------------------------------------------------------------
-// CUSTOMER NOTIFICATIONS (email, plus SMS when an SMS provider is configured)
-// ---------------------------------------------------------------------------
-// TEST MODE: while testing, every customer message is sent to the test email / phone below
-// instead of the real customer. When you are ready to go live, set NOTIFY_TEST_MODE=false.
 const NOTIFY_TEST_MODE = String(process.env.NOTIFY_TEST_MODE || 'true').toLowerCase() !== 'false';
 const TEST_EMAIL = process.env.NOTIFY_TEST_EMAIL || 'tevingampalage29@gmail.com';
 const TEST_PHONE = process.env.NOTIFY_TEST_PHONE || '+94754762056';
-// Contact details printed at the bottom of every email
 const COMPANY = {
   name: 'Lanka Rides',
   email: process.env.COMPANY_EMAIL || 'tevingampalage29@gmail.com',
   phone: process.env.COMPANY_PHONE || '+94754762056',
 };
 
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-// 0754762056 -> +94754762056
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c]));
 const toE164 = (p) => {
   const d = String(p || '').replace(/[^\d+]/g, '');
   if (d.startsWith('+')) return d;
@@ -418,7 +389,6 @@ const niceDate = (s) => {
   return isNaN(d) ? s : d.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 };
 
-// SMS through Twilio (set TWILIO_SID, TWILIO_TOKEN and TWILIO_FROM). Without them the SMS is skipped.
 async function sendSms(to, body) {
   const { TWILIO_SID, TWILIO_TOKEN, TWILIO_FROM } = process.env;
   if (!TWILIO_SID || !TWILIO_TOKEN || !TWILIO_FROM) {
@@ -438,7 +408,6 @@ async function sendSms(to, body) {
   console.log('[NOTIFY] SMS sent to', to);
 }
 
-// Builds the subject, plain text, HTML and SMS for a customer message
 function buildMessage(b, kind, testFor) {
   const first = (b.name || 'there').split(' ')[0];
   const company = {
@@ -523,7 +492,6 @@ Phone: <a href="tel:${esc(company.phone)}" style="color:#1565e0;text-decoration:
   };
 }
 
-// Sends the email (and SMS if configured). Never throws into the request: errors are logged.
 async function notifyCustomer(b, kind) {
   const toEmail = NOTIFY_TEST_MODE ? TEST_EMAIL : b.email;
   const toPhone = NOTIFY_TEST_MODE ? TEST_PHONE : toE164(b.phone);
@@ -545,10 +513,7 @@ async function notifyCustomer(b, kind) {
   }
   try { await sendSms(toPhone, m.sms); } catch (e) { console.error('[NOTIFY]', e.message); }
 }
-// NOTIFY-END
 
-// PUBLIC: called by the website booking form
-// Website ride names (Saloon, SUV, Sedan, Van, Hatchback) -> back office vehicle category
 const vehicleType = (v) => {
   const s = String(v || '').toLowerCase();
   if (/suv|prado/.test(s)) return 'SUV';
@@ -570,7 +535,7 @@ app.post('/api/bookings', (req, res) => {
     rateLimit.set(ip, hits);
 
     const b = req.body || {};
-    if (b.website) return res.status(200).json({ success: true }); // honeypot for bots
+    if (b.website) return res.status(200).json({ success: true });
     if (settingsStore.maintenanceMode) {
       return res.status(503).json({ success: false, message: 'Online bookings are temporarily unavailable for maintenance.' });
     }
@@ -714,7 +679,6 @@ app.post('/api/bookings', (req, res) => {
       notifyCustomer(booking, 'accepted').catch(e => console.error('[NOTIFY] failed:', e.message));
     }
 
-    // Optional: notify the owner by email
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       transporter.sendMail({
         from: `"TD System" <${process.env.EMAIL_USER}>`,
@@ -731,7 +695,6 @@ app.post('/api/bookings', (req, res) => {
   }
 });
 
-// PROTECTED: backoffice staff only
 app.get('/api/bookings', requireStaff, (req, res) => {
   res.status(200).json({ success: true, bookings: bookingsStore });
 });
@@ -849,14 +812,12 @@ app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   }
   saveDb();
 
-  // Tell the customer by email (and SMS) when a request is accepted or declined - only when the status changes
   if (settingsStore.statusNotifications !== false && ['Accepted', 'Rejected'].includes(status) && status !== prevStatus) {
     notifyCustomer(b, status.toLowerCase()).catch(e => console.error('[NOTIFY] failed:', e.message));
   }
   res.status(200).json({ success: true, booking: b });
 });
 
-// PUBLIC: website settings consumed by the booking website
 app.get('/api/public-config', (req, res) => {
   res.set('Cache-Control', 'no-store');
   const publicKeys = [
@@ -879,20 +840,17 @@ app.get('/api/public-config', (req, res) => {
   return res.json({ success: true, settings });
 });
 
-// PUBLIC: which vehicle categories are currently enabled (read by the website)
 app.get('/api/categories', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json({ success: true, categories: { Sedan: true, SUV: true, KDH: true, Hatchback: true, ...(settingsStore.categories || {}) } });
 });
 
-// DRIVERS (staff only)
 const DRIVER_STATUS = ['Available', 'Unavailable', 'On trip'];
 const driverFields = (src) => ({
   firstName: clean(src.firstName, 60), lastName: clean(src.lastName, 60), phone: clean(src.phone, 30),
   email: clean(src.email, 120), nic: clean(src.nic, 20), license: clean(src.license, 30),
   address: clean(src.address, 200), city: clean(src.city, 40),
 });
-// Upgrade drivers saved by the earlier version (available: true/false)
 db.drivers.forEach(d => {
   if (!d.status) d.status = d.available ? 'Available' : 'Unavailable';
   if (d.firstName === undefined) { const [f, ...r] = (d.name || '').split(' '); d.firstName = f || ''; d.lastName = r.join(' '); }
@@ -931,7 +889,6 @@ app.delete('/api/drivers/:id', requireStaff, (req, res) => {
   res.json({ success: true });
 });
 
-// FLEET (staff only)
 const VEHICLE_TYPES = ['Sedan', 'SUV', 'KDH', 'Hatchback'];
 const vehicleFields = (src) => ({
   name: clean(src.name, 80), model: clean(src.model, 80), plate: clean(src.plate, 20).toUpperCase(),
@@ -965,8 +922,6 @@ app.delete('/api/fleet/:id', requireStaff, (req, res) => {
   res.json({ success: true });
 });
 
-// USERS (staff only) - records who works in the system and their role.
-// NOTE: this does not create a Firebase login; add the person in Firebase Authentication too.
 const USER_ROLES = ['Owner', 'Dispatcher', 'Driver', 'Accountant'];
 const userFields = (src) => ({
   name: clean(src.name, 80), email: clean(src.email, 120).toLowerCase(), phone: clean(src.phone, 30),
@@ -1002,13 +957,11 @@ app.delete('/api/users/:id', requireStaff, (req, res) => {
   res.json({ success: true });
 });
 
-// Fallback Route for Single Page Application (index.html, or index_9.html if that is your file name)
 app.get(/(.*)/, (req, res) => {
-  const page = fs.existsSync(path.join(__dirname, 'index.html')) ? 'index.html' : 'index_9.html';
+  const page = fs.existsSync(path.join(__dirname, 'index.html')) ? 'index.html' : 'index_2.html';
   res.sendFile(path.join(__dirname, page));
 });
 
-// Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Backend server actively listening on port ${PORT}`);

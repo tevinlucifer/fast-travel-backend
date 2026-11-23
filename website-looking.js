@@ -1,12 +1,10 @@
-// LankaRides website -> back office booking connector (v2).
+// LankaRides website -> back office booking connector (v2, Glassy V5).
 // Add to the WEBSITE project and load it at the end of the page:
 //   <script src="website-booking.js"></script>
-// It catches the "Confirm booking" button (click OR form submit) and sends the booking
-// to the back office instead of the page's old handler. Fields are matched by their labels.
 (() => {
-  const BACKOFFICE_URL = 'https://amino-nashville-recognize-stakeholders.trycloudflare.com'; // no slash at the end
+  const BACKOFFICE_URL = 'https://amino-nashville-recognize-stakeholders.trycloudflare.com';
 
-  window.__lrOff?.(); // if this script was pasted before, remove the old copy first
+  window.__lrOff?.();
 
   const RULES = [
     ['email', /e-?mail/], ['flight', /flight/], ['endDate', /end\s*date|return date|check-?out/], ['date', /date/], ['time', /time/], ['dropoff', /drop|destination/],
@@ -31,7 +29,7 @@
   async function send(root, btn) {
     if (busy) return;
     busy = true;
-    const payload = { website: '' }; // "website" is a hidden spam trap, keep it empty
+    const payload = { website: '' };
     root.querySelectorAll('input, select, textarea').forEach((el) => {
       if (['submit', 'button', 'hidden', 'checkbox', 'radio'].includes(el.type)) return;
       const key = fieldOf(el);
@@ -58,7 +56,6 @@
     }
   }
 
-  // Case 1: the button is clicked (works even if the page does not use a real form submit)
   const onClick = (e) => {
     const btn = e.target.closest('button, input[type="submit"], a');
     if (!btn || !isConfirm(btn)) return;
@@ -68,7 +65,6 @@
     if (!root.checkValidity || root.checkValidity()) send(root, btn);
     else root.reportValidity();
   };
-  // Case 2: the form is submitted (e.g. pressing Enter)
   const onSubmit = (e) => {
     const f = e.target;
     if (f.tagName !== 'FORM' || !hasEmail(f)) return;

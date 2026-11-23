@@ -21,7 +21,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-// Same origin: the Express server that serves this page also serves /api/*
 const BACKEND_URL = "";
 
 // State Management
@@ -35,34 +34,70 @@ let activeStockPeriod = 'daily';
 let salesData = [];
 let stockData = [];
 
-// Helper function to safely update text content
 const setElementText = (id, text) => {
   const el = document.getElementById(id);
   if (el) el.innerText = text;
 };
 
-
 // ---------------------------------------------------------------------------
-// Login page background (hero-car.jpg) - injected so no CSS file edit is needed
+// Glassy Dashboard V5 theme & booking panel styles
 // ---------------------------------------------------------------------------
 (() => {
   const style = document.createElement('style');
   style.textContent = `
     body.auth-mode {
-      background-color: #000;
-      background-image: linear-gradient(90deg, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%), url('/images/hero-car.jpg');
+      background-color: #10141d;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(217,119,6,.24), transparent 45%),
+        radial-gradient(circle at 80% 30%, rgba(59,130,246,.22), transparent 45%),
+        linear-gradient(90deg, rgba(12,15,22,.45) 0%, rgba(12,15,22,.72) 100%),
+        url('/images/hero-car.jpg');
       background-repeat: no-repeat;
-      background-position: left center;
-      background-size: auto, contain;
+      background-position: center;
+      background-size: cover;
+      backdrop-filter: blur(10px);
       min-height: 100vh;
     }
-    @media (max-width: 900px) {
-      body.auth-mode { background-position: center 12%; background-size: auto, 100% auto; }
+    .glass-v5-panel {
+      background: rgba(24, 28, 38, 0.64);
+      backdrop-filter: blur(20px) saturate(145%);
+      -webkit-backdrop-filter: blur(20px) saturate(145%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    [data-theme=light] .glass-v5-panel {
+      background: rgba(255, 255, 255, 0.66);
+      border-color: rgba(255, 255, 255, 0.75);
+      color: #0f172a;
     }
     .bk-table { width:100%; border-collapse:collapse; }
-    .bk-table th, .bk-table td { padding:10px 12px; text-align:left; border-bottom:1px solid rgba(128,128,128,.25); vertical-align:top; }
-    .bk-table select { padding:4px 6px; border-radius:6px; }
-    .bk-empty { padding:24px; opacity:.7; }
+    .bk-table th, .bk-table td { padding:11px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,.12); vertical-align:top; }
+    [data-theme=light] .bk-table th, [data-theme=light] .bk-table td { border-bottom-color: rgba(15,23,42,.1); }
+    .bk-table tbody tr:hover { background: rgba(255,255,255,.06); }
+    .bk-table select {
+      padding:6px 10px;
+      border-radius:10px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.18);
+      color: inherit;
+      backdrop-filter: blur(10px);
+    }
+    #btn-refresh-bookings {
+      padding: 8px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(59,130,246,.82);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: transform .18s ease, filter .18s ease;
+    }
+    #btn-refresh-bookings:hover { transform: translateY(-2px); filter: brightness(1.06); }
+    .bk-empty { padding:24px; opacity:.72; }
   `;
   document.head.appendChild(style);
 })();
@@ -75,7 +110,6 @@ const setElementText = (id, text) => {
   const anchor = document.getElementById('panel-overview');
   if (!nav || !anchor) return;
 
-  // Sidebar item: clone an existing one so it matches the current styling
   const template = nav.querySelector('.nav-item');
   if (template) {
     const item = template.cloneNode(true);
@@ -85,12 +119,11 @@ const setElementText = (id, text) => {
     nav.appendChild(item);
   }
 
-  // Panel
   const panel = document.createElement('div');
   panel.id = 'panel-bookings';
-  panel.className = 'panel-content hidden';
+  panel.className = 'panel-content glass-v5-panel hidden';
   panel.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
       <h3 style="margin:0;">Website Bookings</h3>
       <button id="btn-refresh-bookings" type="button">Refresh</button>
     </div>
@@ -144,7 +177,7 @@ navItems.forEach(item => {
     if (targetPanel) {
       targetPanel.classList.remove('hidden');
       targetPanel.style.animation = 'none';
-      targetPanel.offsetHeight; // Force reflow for animation restart
+      targetPanel.offsetHeight;
       targetPanel.style.animation = null;
     }
   });
@@ -223,7 +256,7 @@ document.getElementById('btn-add-bill')?.addEventListener('click', () => {
       <td>${newItem.price.toFixed(2)}</td>
       <td>${newItem.category}</td>
       <td>${newItem.type}</td>
-      <td><button style="color:#ef4444; background:none; border:none; cursor:pointer;" class="btn-delete-row">Delete</button></td>
+      <td><button style="color:#f87171; background:none; border:none; cursor:pointer;" class="btn-delete-row">Delete</button></td>
     `;
     
     tr.querySelector('.btn-delete-row')?.addEventListener('click', () => {
@@ -283,7 +316,7 @@ document.getElementById('btn-save-stock-modal')?.addEventListener('click', () =>
       <td>${newItem.code}</td>
       <td>${newItem.name}</td>
       <td>Rs. ${newItem.price.toFixed(2)}</td>
-      <td><button style="color:#ef4444; background:none; border:none; cursor:pointer;" class="btn-delete-row">Delete</button></td>
+      <td><button style="color:#f87171; background:none; border:none; cursor:pointer;" class="btn-delete-row">Delete</button></td>
     `;
 
     tr.querySelector('.btn-delete-row')?.addEventListener('click', () => {
@@ -352,7 +385,6 @@ document.querySelectorAll('.stock-report-tab').forEach(tab => {
   });
 });
 
-// Filter helper fixing month/year comparisons
 function matchesPeriodFilter(itemDateStr, targetDateStr, period) {
   if (!itemDateStr || !targetDateStr) return true;
   const itemDate = new Date(itemDateStr);
@@ -450,7 +482,6 @@ function updateStockReport() {
   setElementText('st-avg-price', `Rs. ${avgPrice.toFixed(2)}`);
 }
 
-// Global scope binding for inline onclick attributes
 window.openMetricDetails = function(title, categoryFilter) {
   const modal = document.getElementById('metric-details-modal');
   const tbody = document.getElementById('metric-details-tbody');
@@ -498,7 +529,7 @@ function showView(viewName) {
   if (currentView) {
     currentView.classList.remove('hidden');
     currentView.style.animation = 'none';
-    currentView.offsetHeight; // Force reflow for entrance animation
+    currentView.offsetHeight;
     currentView.style.animation = null;
   }
 
@@ -522,7 +553,6 @@ document.getElementById('top-nav-signup')?.addEventListener('click', () => showV
 document.getElementById('top-nav-register')?.addEventListener('click', () => showView('signup'));
 document.getElementById('btn-forgot-to-signin')?.addEventListener('click', () => showView('signin'));
 
-// Power Button safely logs out user without abrupt reloading
 document.getElementById('btn-power')?.addEventListener('click', async () => {
   try {
     await signOut(auth);
@@ -622,12 +652,11 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
   signOut(auth);
 });
 
-
 // ---------------------------------------------------------------------------
 // Bookings: load + update status (staff only, verified by Firebase ID token)
 // ---------------------------------------------------------------------------
 const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, ch => (
-  { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+  { '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[ch]
 ));
 
 async function loadBookings() {
@@ -646,11 +675,10 @@ async function loadBookings() {
 
     data.bookings.forEach(b => {
       const tr = document.createElement('tr');
-      // All values come from a public form, so everything is escaped.
       tr.innerHTML = `
         <td>${escapeHtml(b.id)}<br><small>${escapeHtml(new Date(b.createdAt).toLocaleString())}</small></td>
         <td>${escapeHtml(b.name)}<br><small>${escapeHtml(b.email)}<br>${escapeHtml(b.phone)}<br>${escapeHtml(b.nationality)}</small></td>
-        <td>${escapeHtml(b.pickup)} &rarr; ${escapeHtml(b.dropoff)}${b.requests ? `<br><small>${escapeHtml(b.requests)}</small>` : ''}</td>
+        <td>${escapeHtml(b.pickup)} → ${escapeHtml(b.dropoff)}${b.requests ? `<br><small>${escapeHtml(b.requests)}</small>` : ''}</td>
         <td>${escapeHtml(b.date)} ${escapeHtml(b.time)}</td>
         <td>${escapeHtml(b.passengers)}</td>
         <td><select data-id="${escapeHtml(b.id)}">

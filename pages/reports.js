@@ -3,7 +3,7 @@ export default function createReportsPage(ctx) {
     reports() {
       const { head, tile } = ctx;
       const reports = [['Booking report', 'report'], ['Sales report', 'sales'], ['Payment mode summary', 'paymode'], ['Cash and flow'], ['Refund report'], ['Driver report', 'driverrep'], ['Vehicle utilisation'], ['Customer report', 'customer']];
-      return head('Reports', 'Choose a report, set a date range, then print or export') + `<div class="g g4">${reports.map(report => report[1] ? tile(report[0], 'Open ›', report[1], 'aqua') : `<a class="tile aqua" onclick="alert('${report[0]}: coming soon')"><h3>${report[0]}</h3><p>Open ›</p></a>`).join('')}</div>`;
+      return head('Reports', 'Choose a report, set a date range, then print or export') + `<div class="g g4">${reports.map(report => report[1] ? tile(report[0], 'Open ›', report[1], 'aqua glass-lift') : `<a class="tile aqua glass-lift" onclick="alert('${report[0]}: coming soon')"><h3>${report[0]}</h3><p>Open ›</p></a>`).join('')}</div>`;
     },
     report() {
       const { BK, inR, setExport, RH, RFBAR, T, E, bd, when, SB } = ctx;
@@ -11,7 +11,7 @@ export default function createReportsPage(ctx) {
       const count = status => bookings.filter(booking => booking.status === status).length;
       const report = { name: 'booking-report', head: ['Booking ID', 'Customer', 'Mobile', 'From', 'To', 'Vehicle', 'Pickup', 'Status'], rows: bookings.map(booking => [booking.id, booking.name, booking.phone, booking.pickup, booking.dropoff, booking.vehicle || '', booking.date + ' ' + booking.time, booking.status]) };
       setExport(report);
-      return RH('Booking report', 'All website bookings') + RFBAR() + `<div class="g g5">${[['Total bookings', bookings.length], ['Accepted', count('Accepted')], ['Rejected', count('Rejected')], ['Cancelled', count('Cancelled')], ['Completed', count('Completed')], ['No-shows', count('No-show')]].map(SB).join('')}</div>` + T(report.head, bookings.map(booking => `<tr><td>${E(booking.id)}</td><td>${E(booking.name)}</td><td>${E(booking.phone)}</td><td>${E(booking.pickup)}</td><td>${E(booking.dropoff)}</td><td>${E(booking.vehicle || '—')}</td><td>${when(booking)}</td><td>${bd(booking.status, booking.status == 'Accepted' || booking.status == 'Completed' ? 'ok' : ['Rejected', 'Cancelled', 'No-show'].includes(booking.status) ? 'no' : '')}</td></tr>`).join(''));
+      return RH('Booking report', 'All website bookings') + RFBAR() + `<div class="g g5">${[['Total bookings', bookings.length], ['Accepted', count('Accepted')], ['Rejected', count('Rejected')], ['Cancelled', count('Cancelled')], ['Completed', count('Completed')], ['No-shows', count('No-show')]].map(SB).join('')}</div>` + T(report.head, bookings.map(booking => `<tr class="glass-row"><td>${E(booking.id)}</td><td>${E(booking.name)}</td><td>${E(booking.phone)}</td><td>${E(booking.pickup)}</td><td>${E(booking.dropoff)}</td><td>${E(booking.vehicle || '—')}</td><td>${when(booking)}</td><td>${bd(booking.status, booking.status == 'Accepted' || booking.status == 'Completed' ? 'ok' : ['Rejected', 'Cancelled', 'No-show'].includes(booking.status) ? 'no' : '')}</td></tr>`).join(''));
     },
     sales() {
       const { paid, fareOf, plateOf, setExport, RH, RFBAR, LKR, SB, T, trw, E, fdt, payBd } = ctx;
@@ -20,7 +20,7 @@ export default function createReportsPage(ctx) {
       const sumByPayment = payment => bookings.filter(booking => booking.payment == payment).reduce((sum, booking) => sum + fareOf(booking), 0);
       const report = { name: 'sales-report', head: ['Booking ID', 'Date', 'Vehicle number', 'Cash / Card', 'Price'], rows: bookings.map(booking => [booking.id, booking.date, plateOf(booking), booking.payment || '', fareOf(booking)]) };
       setExport(report);
-      return RH('Sales report', 'Accepted and completed bookings') + RFBAR() + `<div class="g g5">${[['Total sales', LKR(total)], ['Bookings', bookings.length], ['Cash', LKR(sumByPayment('Cash'))], ['Card', LKR(sumByPayment('Card'))], ['Online transfer', LKR(sumByPayment('Online transfer'))]].map(SB).join('')}</div>` + T(report.head, bookings.length ? bookings.map(booking => trw([E(booking.id), fdt(booking.date), E(plateOf(booking)), payBd(booking.payment), LKR(fareOf(booking))])).join('') + `<tr class="tot"><td>Total</td><td></td><td></td><td></td><td>${LKR(total)}</td></tr>` : '');
+      return RH('Sales report', 'Accepted and completed bookings') + RFBAR() + `<div class="g g5">${[['Total sales', LKR(total)], ['Bookings', bookings.length], ['Cash', LKR(sumByPayment('Cash'))], ['Card', LKR(sumByPayment('Card'))], ['Online transfer', LKR(sumByPayment('Online transfer'))]].map(SB).join('')}</div>` + T(report.head, bookings.length ? bookings.map(booking => trw([E(booking.id), fdt(booking.date), E(plateOf(booking)), payBd(booking.payment), LKR(fareOf(booking))])).join('') + `<tr class="tot glass-row"><td>Total</td><td></td><td></td><td></td><td>${LKR(total)}</td></tr>` : '');
     },
     paymode() {
       const { paid, PAYS, setExport, RH, RFBAR, SB, T, trw, E, fdt, payBd } = ctx;
