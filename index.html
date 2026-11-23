@@ -564,356 +564,401 @@
       import createAnalyticsPage from './pages/analytics.js';
       import createUsersPage from './pages/users.js';
       import createSettingsPage from './pages/settings.js';
+
       const firebaseConfig = { apiKey: "AIzaSyAHaToGc7F2vlQt6bDXRMMHjnqRf4OANfc", authDomain: "tlucifer-auth.firebaseapp.com", projectId: "tlucifer-auth" };
       const auth = getAuth(initializeApp(firebaseConfig));
       const userAuth = getAuth(initializeApp(firebaseConfig, 'user-creation'));
-      const setTheme = t => { document.documentElement.dataset.theme = t; localStorage.setItem("theme", t); document.querySelectorAll(".tsw").forEach(b => b.setAttribute("aria-checked", t == "dark")); };
+
+      const setTheme = t => {
+        document.documentElement.dataset.theme = t;
+        localStorage.setItem("theme", t);
+        document.querySelectorAll(".tsw").forEach(b => b.setAttribute("aria-checked", String(t === "dark")));
+      };
       setTheme(localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
-      document.querySelectorAll(".tsw").forEach(b => b.onclick = () => setTheme(document.documentElement.dataset.theme == "dark" ? "light" : "dark"));
-      const $ = s => document.querySelector(s), E = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c]));
-      const LKR = n => n ? (CFG.currency || 'LKR') + ' ' + Number(n).toLocaleString() : '—';
+      document.querySelectorAll(".tsw").forEach(b => {
+        b.onclick = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+      });
+
+      const $ = s => document.querySelector(s);
+      const E = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c]));
+      const LKR = n => n ? `${CFG.currency || 'LKR'} ${Number(n).toLocaleString()}` : '—';
       const API = (['5500', '5501'].includes(location.port) || location.protocol === 'file:') ? 'http://localhost:3000' : '';
+
       let BK = [], CFG = { minNotice: 3, maxDuration: 14, buffer: 30, grace: 15, rateSedan: 120, rateKDH: 280, rateHatch: 95, rateSUV: 0 };
       let FLEET = [], DR = [];
       let US = [];
-      async function api(p, o = {}) { const t = await auth.currentUser.getIdToken(); const r = await fetch(API + '/api' + p, { ...o, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t } }); const d = await r.json().catch(() => ({})); if (!r.ok || !d.success)
-          throw new Error(d.message || 'Request failed'); return d; }
-      async function load() { try {
+
+      async function api(p, o = {}) {
+        const t = await auth.currentUser.getIdToken();
+        const r = await fetch(`${API}/api${p}`, {
+          ...o,
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` }
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.success) throw new Error(d.message || 'Request failed');
+        return d;
+      }
+
+      async function load() {
+        try {
           [BK, DR, FLEET, US] = (await Promise.all([api('/bookings'), api('/drivers'), api('/fleet'), api('/users')])).map(r => r.bookings || r.drivers || r.fleet || r.users);
           const s = await api('/settings');
           Object.assign(CFG, s.settings || {});
           PAYS.splice(0, PAYS.length, ...String(CFG.paymentMethods || 'Cash,Card,Online transfer').split(',').map(v => v.trim()).filter(Boolean));
           route(true);
-          } catch (e) {
-            console.warn(e);
-          } }
-          const T = (h, r) => `<div class="tw"><table><thead><tr>${h.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${r || `<tr><td colspan="${h.length}">Nothing here yet</td></tr>`}</tbody></table></div>`;
-          const bd = (t, c = '') => `<span class="bd ${c}">${E(t)}</span>`, when = b => E([b.date + (b.endDate && b.endDate !== b.date ? ' to ' + b.endDate : ''), b.time].filter(Boolean).join(' · '));
-          const by = s => BK.filter(b => b.status === s);
-          const head = (t, s, x = '') => `<div class="hd"><div><h1 class="t">${t}</h1><p class="sub">${s}</p></div><div class="fl">${x}</div></div>`;
-          const tile = (h, p, l, c = '') => `<a class="tile ${c}" href="#${l}"><h3>${h}</h3><p>${p}</p></a>`;
-          const sv = p => `<svg viewBox="0 0 24 24">${p}</svg>`, IC = { dash: sv('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'), bookings: sv('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>'), fleet: sv('<path d="M3 17v-4l2-6h14l2 6v4M3 13h18M6 17v2M18 17v2"/>'), drivers: sv('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'), reports: sv('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6"/>'), analytics: sv('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'), users: sv('<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 4.5a3.5 3.5 0 0 1 0 7M22 20c0-2.5-1.5-4.3-4-5"/>'), settings: sv('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'), inbox: sv('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>'), check: sv('<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>'), cash: sv('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>'), pct: sv('<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>') };
-          const RF = { from: '', to: '', p: 'all' };
-          let EXP = null;
-          const PAYS = ['Cash', 'Card', 'Online transfer'];
-          const RK = { 'Booking report': 'report', 'Sales report': 'sales', 'Payment mode summary': 'paymode', 'Driver report': 'driverrep', 'Customer report': 'customer' };
-          const pad2 = n => String(n).padStart(2, '0'), iso = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-          const RP = { all: ['All time', () => ['', '']], today: ['Today', () => { const t = new Date(); return [iso(t), iso(t)]; }], last7: ['Last 7 days', () => { const t = new Date(), s = new Date(); s.setDate(t.getDate() - 6); return [iso(s), iso(t)]; }], month: ['This month', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), t.getMonth(), 1)), iso(t)]; }], lmonth: ['Last month', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), t.getMonth() - 1, 1)), iso(new Date(t.getFullYear(), t.getMonth(), 0))]; }], year: ['This year', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), 0, 1)), iso(t)]; }] };
-          const fdt = s => { const d = new Date(s + 'T00:00:00'); return isNaN(d) ? E(s || '—') : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); };
-          const rangeTxt = () => !RF.from && !RF.to ? 'Showing all dates' : 'Showing ' + (RF.from ? fdt(RF.from) : 'the start') + ' to ' + (RF.to ? fdt(RF.to) : 'today');
-          const inR = b => (!RF.from || (b.date || '') >= RF.from) && (!RF.to || (b.date || '') <= RF.to);
-          const RFBAR = () => `<div class="rf"><label>From<input type="date" id="rfF" value="${RF.from}"></label><label>To<input type="date" id="rfT" value="${RF.to}"></label><button class="btn s" id="rfA">Apply</button><div class="rfp">${Object.entries(RP).map(([k, v]) => `<button class="btn o s ${RF.p == k ? 'on' : ''}" data-rp="${k}">${v[0]}</button>`).join('')}</div><p class="rfe" id="rfE"></p><p class="rft">${rangeTxt()}</p></div>`;
-          const RH = (t, s) => head(t, s, '<button class="btn o" onclick="print()">Print</button><button class="btn" id="ex">Export</button>');
-          const SB = x => `<div class="st"><small>${x[0]}</small><b>${x[1]}</b></div>`;
-          const trw = c => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`, gtr = c => `<tr class="grp">${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
-          const payBd = p => PAYS.includes(p) ? bd(p, p == 'Cash' ? 'ok' : p == 'Card' ? 'in' : '') : bd('Not set');
-          const fareOf = b => +b.fare || 0;
-          const plateOf = b => { const v = b.vehicle || '', f = FLEET.find(x => x.name + ' · ' + x.plate == v); return f ? f.plate : (v.includes(' · ') ? v.split(' · ').pop() : '') || '—'; };
-          const drvId = b => b.driverId || (DR.find(d => d.name == b.driver) || {}).id || '—';
-          const cn = s => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase(), nice = s => String(s || '').trim().replace(/\s+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-          const custMap = () => { const m = {}; [...BK].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).forEach(b => { const k = cn(b.name); if (k && !m[k]) m[k] = 'CUS-' + String(Object.keys(m).length + 1).padStart(4, '0'); }); return m; };
-          const paid = () => BK.filter(b => (b.status == 'Accepted' || b.status == 'Completed') && inR(b)).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-          function setRF(f, t, p) { RF.from = f; RF.to = t; RF.p = p; route(); }
-          function applyRF() { const f = $('#rfF').value, t = $('#rfT').value; if (f && t && f > t) return $('#rfE').textContent = 'The start date must be before the end date.'; setRF(f, t, ''); }
-          document.addEventListener('click', e => { const t = e.target; if (t.dataset.rp) { const r = RP[t.dataset.rp][1](); return setRF(r[0], r[1], t.dataset.rp); } if (t.id == 'rfA') applyRF(); });
-          document.addEventListener('change', e => { if (e.target.id == 'rfF' || e.target.id == 'rfT') applyRF(); });
-          const pageContext = {
-          get $() { return $; },
-          get E() { return E; },
-          get LKR() { return LKR; },
-          get BK() { return BK; },
-          get CFG() { return CFG; },
-          get FLEET() { return FLEET; },
-          get DR() { return DR; },
-          get US() { return US; },
-          get T() { return T; },
-          get bd() { return bd; },
-          get when() { return when; },
-          get by() { return by; },
-          get head() { return head; },
-          get tile() { return tile; },
-          get IC() { return IC; },
-          get PAYS() { return PAYS; },
-          get RFBAR() { return RFBAR; },
-          get RH() { return RH; },
-          get SB() { return SB; },
-          get trw() { return trw; },
-          get gtr() { return gtr; },
-          get payBd() { return payBd; },
-          get fareOf() { return fareOf; },
-          get plateOf() { return plateOf; },
-          get drvId() { return drvId; },
-          get nice() { return nice; },
-          get custMap() { return custMap; },
-          get paid() { return paid; },
-          get inR() { return inR; },
-          get fdt() { return fdt; },
-          setExport(value) { EXP = value; }
-        };
-        const V = Object.assign(
-          createDashboardPage(pageContext),
-          createBookingsPage(pageContext),
-          createFleetPage(pageContext),
-          createDriversPage(pageContext),
-          createReportsPage(pageContext),
-          createAnalyticsPage(pageContext),
-          createUsersPage(pageContext),
-          createSettingsPage(pageContext)
-        );
-      const NAV = [['Dashboard', 'dash'], ['Bookings', 'bookings'], ['Fleet', 'fleet'], ['Drivers', 'drivers'], ['Reports', 'reports'], ['Analytics', 'analytics'], ['Users', 'users'], ['Settings', 'settings']], GRP = { new: 'bookings', accepted: 'bookings', rejected: 'bookings', history: 'bookings', booking: 'bookings', report: 'reports', sales: 'reports', paymode: 'reports', driverrep: 'reports', customer: 'reports' };
-      const routeFromUrl = () => {
-          const hash = location.hash.slice(1);
-          if (hash)
-              return hash;
-          const page = location.pathname.replace(/\/+$/, '').split('/').pop();
-          return V[page] ? page : 'dash';
-      };
-      function route(soft) {
-          if (!auth.currentUser)
-              return;
-          if (soft && [...document.querySelectorAll('#app input,#app select')].some(i => i.value !== i.defaultValue))
-              return;
-          let [r, a] = routeFromUrl().split('/');
-          if (!V[r])
-              r = 'dash';
-          const on = GRP[r] || r;
-          $('#q').placeholder = 'Search ' + (SC[r] || SC.dash).t + '…';
-          $('#nv').innerHTML = NAV.map(n => `<a href="/${n[1]}" class="${n[1] == on ? 'on' : ''}" title="${n[0]}">${IC[n[1]]}<span>${n[0]}</span></a>`).join('');
-          $('#bell').classList.toggle('dot', by('New').length > 0);
-          $('#app').innerHTML = V[r](a);
+        } catch (e) {
+          console.warn(e);
+        }
       }
+
+      const T = (h, r) => `<div class="tw"><table><thead><tr>${h.map(x => `<th>${x}</th>`).join('')}</tr></thead><tbody>${r || `<tr><td colspan="${h.length}">Nothing here yet</td></tr>`}</tbody></table></div>`;
+      const bd = (t, c = '') => `<span class="bd ${c}">${E(t)}</span>`;
+      const when = b => E([b.date + (b.endDate && b.endDate !== b.date ? ` to ${b.endDate}` : ''), b.time].filter(Boolean).join(' · '));
+      const by = s => BK.filter(b => b.status === s);
+      const head = (t, s, x = '') => `<div class="hd"><div><h1 class="t">${t}</h1><p class="sub">${s}</p></div><div class="fl">${x}</div></div>`;
+      const tile = (h, p, l, c = '') => `<a class="tile ${c}" href="#${l}"><h3>${h}</h3><p>${p}</p></a>`;
+      const sv = p => `<svg viewBox="0 0 24 24">${p}</svg>`;
+      const IC = {
+        dash: sv('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'),
+        bookings: sv('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>'),
+        fleet: sv('<path d="M3 17v-4l2-6h14l2 6v4M3 13h18M6 17v2M18 17v2"/>'),
+        drivers: sv('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>'),
+        reports: sv('<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8zM14 3v5h5M9 13h6M9 17h6"/>'),
+        analytics: sv('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+        users: sv('<circle cx="9" cy="8" r="3.5"/><path d="M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M17 4.5a3.5 3.5 0 0 1 0 7M22 20c0-2.5-1.5-4.3-4-5"/>'),
+        settings: sv('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
+        inbox: sv('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>'),
+        check: sv('<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>'),
+        cash: sv('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>'),
+        pct: sv('<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>')
+      };
+
+      const RF = { from: '', to: '', p: 'all' };
+      let EXP = null;
+      const PAYS = ['Cash', 'Card', 'Online transfer'];
+      const RK = { 'Booking report': 'report', 'Sales report': 'sales', 'Payment mode summary': 'paymode', 'Driver report': 'driverrep', 'Customer report': 'customer' };
+      const pad2 = n => String(n).padStart(2, '0');
+      const iso = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+      const RP = {
+        all: ['All time', () => ['', '']],
+        today: ['Today', () => { const t = new Date(); return [iso(t), iso(t)]; }],
+        last7: ['Last 7 days', () => { const t = new Date(), s = new Date(); s.setDate(t.getDate() - 6); return [iso(s), iso(t)]; }],
+        month: ['This month', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), t.getMonth(), 1)), iso(t)]; }],
+        lmonth: ['Last month', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), t.getMonth() - 1, 1)), iso(new Date(t.getFullYear(), t.getMonth(), 0))]; }],
+        year: ['This year', () => { const t = new Date(); return [iso(new Date(t.getFullYear(), 0, 1)), iso(t)]; }]
+      };
+      const fdt = s => { const d = new Date(`${s}T00:00:00`); return isNaN(d) ? E(s || '—') : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); };
+      const rangeTxt = () => !RF.from && !RF.to ? 'Showing all dates' : `Showing ${RF.from ? fdt(RF.from) : 'the start'} to ${RF.to ? fdt(RF.to) : 'today'}`;
+      const inR = b => (!RF.from || (b.date || '') >= RF.from) && (!RF.to || (b.date || '') <= RF.to);
+      const RFBAR = () => `<div class="rf"><label>From<input type="date" id="rfF" value="${RF.from}"></label><label>To<input type="date" id="rfT" value="${RF.to}"></label><button class="btn s" id="rfA">Apply</button><div class="rfp">${Object.entries(RP).map(([k, v]) => `<button class="btn o s ${RF.p == k ? 'on' : ''}" data-rp="${k}">${v[0]}</button>`).join('')}</div><p class="rfe" id="rfE"></p><p class="rft">${rangeTxt()}</p></div>`;
+      const RH = (t, s) => head(t, s, '<button class="btn o" onclick="print()">Print</button><button class="btn" id="ex">Export</button>');
+      const SB = x => `<div class="st"><small>${x[0]}</small><b>${x[1]}</b></div>`;
+      const trw = c => `<tr>${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
+      const gtr = c => `<tr class="grp">${c.map(x => `<td>${x}</td>`).join('')}</tr>`;
+      const payBd = p => PAYS.includes(p) ? bd(p, p == 'Cash' ? 'ok' : p == 'Card' ? 'in' : '') : bd('Not set');
+      const fareOf = b => +b.fare || 0;
+      const plateOf = b => { const v = b.vehicle || '', f = FLEET.find(x => `${x.name} · ${x.plate}` == v); return f ? f.plate : (v.includes(' · ') ? v.split(' · ').pop() : '') || '—'; };
+      const drvId = b => b.driverId || (DR.find(d => d.name == b.driver) || {}).id || '—';
+      const cn = s => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();
+      const nice = s => String(s || '').trim().replace(/\s+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      const custMap = () => { const m = {}; [...BK].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).forEach(b => { const k = cn(b.name); if (k && !m[k]) m[k] = `CUS-${String(Object.keys(m).length + 1).padStart(4, '0')}`; }); return m; };
+      const paid = () => BK.filter(b => (b.status == 'Accepted' || b.status == 'Completed') && inR(b)).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+
+      function setRF(f, t, p) { RF.from = f; RF.to = t; RF.p = p; route(); }
+      function applyRF() { const f = $('#rfF').value, t = $('#rfT').value; if (f && t && f > t) return $('#rfE').textContent = 'The start date must be before the end date.'; setRF(f, t, ''); }
+      document.addEventListener('click', e => { const t = e.target; if (t.dataset.rp) { const r = RP[t.dataset.rp][1](); return setRF(r[0], r[1], t.dataset.rp); } if (t.id == 'rfA') applyRF(); });
+      document.addEventListener('change', e => { if (e.target.id == 'rfF' || e.target.id == 'rfT') applyRF(); });
+
+      const pageContext = {
+        get $() { return $; },
+        get E() { return E; },
+        get LKR() { return LKR; },
+        get BK() { return BK; },
+        get CFG() { return CFG; },
+        get FLEET() { return FLEET; },
+        get DR() { return DR; },
+        get US() { return US; },
+        get T() { return T; },
+        get bd() { return bd; },
+        get when() { return when; },
+        get by() { return by; },
+        get head() { return head; },
+        get tile() { return tile; },
+        get IC() { return IC; },
+        get PAYS() { return PAYS; },
+        get RFBAR() { return RFBAR; },
+        get RH() { return RH; },
+        get SB() { return SB; },
+        get trw() { return trw; },
+        get gtr() { return gtr; },
+        get payBd() { return payBd; },
+        get fareOf() { return fareOf; },
+        get plateOf() { return plateOf; },
+        get drvId() { return drvId; },
+        get nice() { return nice; },
+        get custMap() { return custMap; },
+        get paid() { return paid; },
+        get inR() { return inR; },
+        get fdt() { return fdt; },
+        setExport(value) { EXP = value; }
+      };
+
+      const V = Object.assign(
+        createDashboardPage(pageContext),
+        createBookingsPage(pageContext),
+        createFleetPage(pageContext),
+        createDriversPage(pageContext),
+        createReportsPage(pageContext),
+        createAnalyticsPage(pageContext),
+        createUsersPage(pageContext),
+        createSettingsPage(pageContext)
+      );
+
+      const NAV = [['Dashboard', 'dash'], ['Bookings', 'bookings'], ['Fleet', 'fleet'], ['Drivers', 'drivers'], ['Reports', 'reports'], ['Analytics', 'analytics'], ['Users', 'users'], ['Settings', 'settings']];
+      const GRP = { new: 'bookings', accepted: 'bookings', rejected: 'bookings', history: 'bookings', booking: 'bookings', report: 'reports', sales: 'reports', paymode: 'reports', driverrep: 'reports', customer: 'reports' };
+
+      const routeFromUrl = () => {
+        const hash = location.hash.slice(1);
+        if (hash) return hash;
+        const page = location.pathname.replace(/\/+$/, '').split('/').pop();
+        return V[page] ? page : 'dash';
+      };
+
+      function route(soft) {
+        if (!auth.currentUser) return;
+        if (soft && [...document.querySelectorAll('#app input,#app select')].some(i => i.value !== i.defaultValue)) return;
+        let [r, a] = routeFromUrl().split('/');
+        if (!V[r]) r = 'dash';
+        const on = GRP[r] || r;
+        $('#q').placeholder = `Search ${(SC[r] || SC.dash).t}…`;
+        $('#nv').innerHTML = NAV.map(n => `<a href="/${n[1]}" class="${n[1] == on ? 'on' : ''}" title="${n[0]}">${IC[n[1]]}<span>${n[0]}</span></a>`).join('');
+        $('#bell').classList.toggle('dot', by('New').length > 0);
+        $('#app').innerHTML = V[r](a);
+      }
+
       let STACK = [];
       const syncBack = () => { $('#bk').disabled = STACK.length < 2; };
-        const currentLocation = () => location.pathname + location.hash;
-        const onNavigation = () => {
-          const current = currentLocation();
-          if (STACK[STACK.length - 2] === current)
-            STACK.pop();
-          else if (STACK[STACK.length - 1] !== current)
-            STACK.push(current);
-          syncBack();
-          $('#q').value = '';
-          $('#qr').classList.add('hidden');
-          route();
-        };
-        addEventListener('hashchange', onNavigation);
-        addEventListener('popstate', onNavigation);
-        $('#nv').addEventListener('click', e => {
-          const link = e.target.closest('a');
-          if (!link || link.origin !== location.origin || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)
-            return;
-          e.preventDefault();
-          if (link.pathname === location.pathname && !location.hash)
-            return;
-          history.pushState(null, '', link.pathname);
-          STACK.push(currentLocation());
-          syncBack();
-          $('#q').value = '';
-          $('#qr').classList.add('hidden');
-          route();
-        });
+      const currentLocation = () => location.pathname + location.hash;
+      const onNavigation = () => {
+        const current = currentLocation();
+        if (STACK[STACK.length - 2] === current) STACK.pop();
+        else if (STACK[STACK.length - 1] !== current) STACK.push(current);
+        syncBack();
+        $('#q').value = '';
+        $('#qr').classList.add('hidden');
+        route();
+      };
+      addEventListener('hashchange', onNavigation);
+      addEventListener('popstate', onNavigation);
+      $('#nv').addEventListener('click', e => {
+        const link = e.target.closest('a');
+        if (!link || link.origin !== location.origin || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+        e.preventDefault();
+        if (link.pathname === location.pathname && !location.hash) return;
+        history.pushState(null, '', link.pathname);
+        STACK.push(currentLocation());
+        syncBack();
+        $('#q').value = '';
+        $('#qr').classList.add('hidden');
+        route();
+      });
       $('#bk').onclick = () => history.back();
+
       const SC = { dash: { t: 'dashboard', k: '', p: 1 }, bookings: { t: 'bookings', k: 'b', p: 1 }, new: { t: 'new requests', k: 'b', s: 'New' }, accepted: { t: 'accepted trips', k: 'b', s: 'Accepted' }, rejected: { t: 'rejected requests', k: 'b', s: 'Rejected' }, history: { t: 'bookings', k: 'b' }, booking: { t: 'bookings', k: 'b' }, report: { t: 'bookings', k: 'b' }, sales: { t: 'bookings', k: 'b' }, paymode: { t: 'bookings', k: 'b' }, driverrep: { t: 'drivers', k: 'd' }, customer: { t: 'bookings', k: 'b' }, reports: { t: 'reports', k: 'r' }, analytics: { t: 'bookings', k: 'b' }, fleet: { t: 'vehicles', k: 'v' }, drivers: { t: 'drivers', k: 'd' }, users: { t: 'users', k: 'u' }, settings: { t: 'settings', k: 's' } };
       const TILES = { dash: [['Bookings', 'New, accepted and rejected requests', 'bookings'], ['New requests', 'Waiting for a decision', 'new'], ['Accepted', 'Confirmed trips', 'accepted'], ['Revenue', 'Accepted bookings total', 'analytics'], ['Acceptance rate', 'Accepted vs rejected', 'analytics'], ['Fleet', 'Vehicles', 'fleet'], ['Vehicles available', 'Fleet size', 'fleet'], ['Payments', 'Revenue and reports', 'reports'], ['Reports', 'Booking report and more', 'reports'], ['Analytics', 'Trends and revenue', 'analytics'], ['Drivers', 'Availability and details', 'drivers'], ['Drivers available', 'Live driver availability', 'drivers'], ['Users', 'Accounts and roles', 'users'], ['Settings', 'Rules, rates and vehicle categories', 'settings']], bookings: [['New requests', 'Waiting for a decision', 'new'], ['Accepted', 'Confirmed trips', 'accepted'], ['Rejected', 'Declined requests', 'rejected'], ['Completed and cancelled', 'Finished and cancelled trips', 'history'], ['Needs attention', 'Requests waiting over 2 hours', 'bookings']] };
-      const SETS = [['minNotice', 'Minimum notice (hrs)'], ['maxDuration', 'Maximum duration (days)'], ['buffer', 'Buffer between trips (min)'], ['grace', 'No-show grace (min)'], ['rateSedan', 'Sedan rate per km'], ['rateKDH', 'KDH rate per km'], ['rateHatch', 'Hatch rate per km'], ['rateSUV', 'SUV rate per km']], REPS = ['Booking report', 'Sales report', 'Payment mode summary', 'Cash and flow', 'Refund report', 'Driver report', 'Vehicle utilisation', 'Customer report'];
+      const SETS = [['minNotice', 'Minimum notice (hrs)'], ['maxDuration', 'Maximum duration (days)'], ['buffer', 'Buffer between trips (min)'], ['grace', 'No-show grace (min)'], ['rateSedan', 'Sedan rate per km'], ['rateKDH', 'KDH rate per km'], ['rateHatch', 'Hatch rate per km'], ['rateSUV', 'SUV rate per km']];
+      const REPS = ['Booking report', 'Sales report', 'Payment mode summary', 'Cash and flow', 'Refund report', 'Driver report', 'Vehicle utilisation', 'Customer report'];
       const curPage = () => (location.hash.slice(1) || 'dash').split('/')[0];
+
       function doSearch() {
-          const q = $('#q').value.trim().toLowerCase(), box = $('#qr');
-          if (!q) {
-              box.classList.add('hidden');
-              return;
-          }
-          const sc = SC[curPage()] || SC.dash, hit = (o, ks) => ks.some(k => String(o[k] || '').toLowerCase().includes(q)), r = [], has = c => sc.k.includes(c);
-          if (sc.p)
-              (TILES[curPage()] || []).filter(t => (t[0] + ' ' + t[1]).toLowerCase().includes(q)).forEach(t => r.push(['Section', t[0], t[1], t[2]]));
-          if (has('b'))
-              BK.filter(b => (!sc.s || b.status === sc.s) && hit(b, ['id', 'name', 'phone', 'email', 'pickup', 'dropoff', 'status'])).slice(0, 8).forEach(b => r.push(['Booking', b.id + ' · ' + b.name, b.pickup + ' → ' + b.dropoff + ' · ' + b.status, 'booking/' + b.id]));
-          if (has('d'))
-              DR.filter(d => hit(d, ['name', 'phone', 'city', 'license', 'nic', 'email', 'status'])).slice(0, 8).forEach(d => r.push(['Driver', d.name, d.phone + (d.city ? ' · ' + d.city : '') + ' · ' + d.status, 'drivers']));
-          if (has('v'))
-              FLEET.filter(f => hit(f, ['name', 'model', 'plate', 'type', 'color'])).slice(0, 8).forEach(f => r.push(['Vehicle', f.name, f.type + ' · ' + f.plate, 'fleet']));
-          if (has('u'))
-              US.filter(u => hit(u, ['name', 'email', 'phone', 'role', 'status'])).forEach(u => r.push(['User', u.name, u.email + ' · ' + u.role, 'users']));
-          if (has('s'))
-              SETS.filter(s => s[1].toLowerCase().includes(q)).forEach(s => r.push(['Setting', s[1], 'Click to edit', 'settings:' + s[0]]));
-          if (has('r'))
-              REPS.filter(s => s.toLowerCase().includes(q)).forEach(s => r.push(['Report', s, RK[s] ? 'Open report' : 'Coming soon', RK[s] || 'reports']));
-          box.innerHTML = r.length ? r.map(x => `<div class="si" data-sgo="${E(x[3])}"><div class="k">${x[0]}</div><div class="t1">${E(x[1])}</div><div class="t2">${E(x[2])}</div></div>`).join('') : '<div class="si"><div class="t2">Nothing found on this page</div></div>';
-          box.classList.remove('hidden');
+        const q = $('#q').value.trim().toLowerCase(), box = $('#qr');
+        if (!q) { box.classList.add('hidden'); return; }
+        const sc = SC[curPage()] || SC.dash, hit = (o, ks) => ks.some(k => String(o[k] || '').toLowerCase().includes(q)), r = [], has = c => sc.k.includes(c);
+        if (sc.p) (TILES[curPage()] || []).filter(t => (`${t[0]} ${t[1]}`).toLowerCase().includes(q)).forEach(t => r.push(['Section', t[0], t[1], t[2]]));
+        if (has('b')) BK.filter(b => (!sc.s || b.status === sc.s) && hit(b, ['id', 'name', 'phone', 'email', 'pickup', 'dropoff', 'status'])).slice(0, 8).forEach(b => r.push(['Booking', `${b.id} · ${b.name}`, `${b.pickup} → ${b.dropoff} · ${b.status}`, `booking/${b.id}`]));
+        if (has('d')) DR.filter(d => hit(d, ['name', 'phone', 'city', 'license', 'nic', 'email', 'status'])).slice(0, 8).forEach(d => r.push(['Driver', d.name, `${d.phone}${d.city ? ` · ${d.city}` : ''} · ${d.status}`, 'drivers']));
+        if (has('v')) FLEET.filter(f => hit(f, ['name', 'model', 'plate', 'type', 'color'])).slice(0, 8).forEach(f => r.push(['Vehicle', f.name, `${f.type} · ${f.plate}`, 'fleet']));
+        if (has('u')) US.filter(u => hit(u, ['name', 'email', 'phone', 'role', 'status'])).forEach(u => r.push(['User', u.name, `${u.email} · ${u.role}`, 'users']));
+        if (has('s')) SETS.filter(s => s[1].toLowerCase().includes(q)).forEach(s => r.push(['Setting', s[1], 'Click to edit', `settings:${s[0]}`]));
+        if (has('r')) REPS.filter(s => s.toLowerCase().includes(q)).forEach(s => r.push(['Report', s, RK[s] ? 'Open report' : 'Coming soon', RK[s] || 'reports']));
+        box.innerHTML = r.length ? r.map(x => `<div class="si" data-sgo="${E(x[3])}"><div class="k">${x[0]}</div><div class="t1">${E(x[1])}</div><div class="t2">${E(x[2])}</div></div>`).join('') : '<div class="si"><div class="t2">Nothing found on this page</div></div>';
+        box.classList.remove('hidden');
       }
+
       $('#q').addEventListener('input', doSearch);
       $('#q').addEventListener('focus', doSearch);
-      $('#q').addEventListener('keydown', e => { if (e.key == 'Enter')
-          document.querySelector('#qr .si[data-sgo]')?.click(); if (e.key == 'Escape') {
-          e.target.value = '';
-          $('#qr').classList.add('hidden');
-      } });
+      $('#q').addEventListener('keydown', e => {
+        if (e.key == 'Enter') document.querySelector('#qr .si[data-sgo]')?.click();
+        if (e.key == 'Escape') { e.target.value = ''; $('#qr').classList.add('hidden'); }
+      });
       $('#qb').onclick = () => { $('#q').focus(); doSearch(); };
-      document.addEventListener('click', e => { const s = e.target.closest('.si[data-sgo]'); if (s) {
+      document.addEventListener('click', e => {
+        const s = e.target.closest('.si[data-sgo]');
+        if (s) {
           const [p, k] = s.dataset.sgo.split(':');
           location.hash = p;
-          if (k)
-              setTimeout(() => document.querySelector(`[data-k="${k}"]`)?.focus(), 60);
+          if (k) setTimeout(() => document.querySelector(`[data-k="${k}"]`)?.focus(), 60);
           $('#q').value = '';
           $('#qr').classList.add('hidden');
-      }
-      else if (!e.target.closest('#sbox'))
-          $('#qr').classList.add('hidden'); });
+        } else if (!e.target.closest('#sbox')) {
+          $('#qr').classList.add('hidden');
+        }
+      });
+
       const DIST = ['Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'];
+
       function openForm(c) {
-          const d = c.data || {}, m = document.createElement('div'), x = () => { m.remove(); removeEventListener('keydown', esc); }, esc = e => e.key == 'Escape' && x(), sg = c.seg;
-          m.className = 'mo';
-          const fld = f => `<label${f.w ? ' class="w"' : ''}><span>${f.l}${f.r ? ' <i>*</i>' : ''}</span>${f.t == 'select' ? `<select id="f_${f.k}"><option value="">${f.ph || 'Select'}</option>${f.o.map(o => { const [a, b] = Array.isArray(o) ? o : [o, o]; return `<option value="${E(a)}" ${a == d[f.k] ? 'selected' : ''}>${E(b)}</option>`; }).join('')}</select>` : `<input id="f_${f.k}" type="${f.t || 'text'}" value="${E(d[f.k] ?? '')}">`}</label>`;
-          m.innerHTML = `<div class="mb"><h3>${c.title}</h3><div class="fg">${c.fields.map(fld).join('')}${c.passwords ? `<label><span>Password <i>*</i></span><input id="f_password" type="password" minlength="6" autocomplete="new-password"></label><label><span>Confirm password <i>*</i></span><input id="f_passwordConfirm" type="password" minlength="6" autocomplete="new-password"></label>` : ''}</div>${sg ? `<h3>${sg.title}</h3><div class="seg ${sg.nb ? 'nb' : ''}">${sg.o.map(o => `<label class="${o[2] || ''}"><input type="radio" name="f_seg" value="${E(o[0])}" ${(d[sg.k] || sg.def) == o[0] ? 'checked' : ''}><span>${o[1] || o[0]}</span></label>`).join('')}</div>` : ''}<p id="merr"></p><div class="ac"><button class="btn o" id="mc">Cancel</button><button class="btn" id="ms">${c.save}</button></div></div>`;
-          document.body.appendChild(m);
-          addEventListener('keydown', esc);
-          m.onclick = e => { if (e.target == m || e.target.id == 'mc')
-              x(); };
-          m.querySelector('#ms').onclick = async () => {
-              const b = {};
-              c.fields.forEach(f => b[f.k] = m.querySelector('#f_' + f.k).value.trim());
-              if (sg)
-                  b[sg.k] = m.querySelector('[name=f_seg]:checked').value;
-              const miss = c.fields.filter(f => f.r && !b[f.k]).map(f => f.l);
-              if (miss.length)
-                  return m.querySelector('#merr').textContent = miss.join(', ') + (miss.length > 1 ? ' are' : ' is') + ' required.';
-                const password = c.passwords ? m.querySelector('#f_password').value : '';
-                if (c.passwords && password.length < 6)
-                  return m.querySelector('#merr').textContent = 'Password must be at least 6 characters.';
-                if (c.passwords && password !== m.querySelector('#f_passwordConfirm').value)
-                  return m.querySelector('#merr').textContent = 'Passwords do not match.';
-              try {
-                  await c.onSave(b, password);
-                  x();
-                  load();
-              }
-              catch (e) {
-                  m.querySelector('#merr').textContent = e.message;
-              }
-          };
-          m.querySelector('input,select').focus();
-      }
-      const save = (p, id, b) => api(id ? p + '/' + id : p, { method: id ? 'PATCH' : 'POST', body: JSON.stringify(b) });
-      const openDr = d => openForm({ title: d ? 'Edit driver' : 'Driver details', data: d, save: d ? 'Save changes' : 'Save driver', fields: [{ k: 'firstName', l: 'First name', r: 1 }, { k: 'lastName', l: 'Last name' }, { k: 'phone', l: 'Phone number', t: 'tel', r: 1 }, { k: 'email', l: 'Email', t: 'email' }, { k: 'nic', l: 'NIC No' }, { k: 'license', l: 'Driving licence' }, { k: 'address', l: 'Address', w: 1 }, { k: 'city', l: 'City (district)', t: 'select', o: DIST, ph: 'Select district' }], seg: { title: 'Availability', k: 'status', def: 'Available', o: [['Available', '', 'stAvailable'], ['Unavailable', '', 'stUnavailable'], ['On trip', '', 'stOntrip']] }, onSave: b => save('/drivers', d?.id, b) });
-      const openVe = d => openForm({ title: d ? 'Edit vehicle' : 'Vehicle details', data: d, save: d ? 'Save changes' : 'Save vehicle', fields: [{ k: 'name', l: 'Vehicle name', r: 1 }, { k: 'model', l: 'Vehicle model', r: 1 }, { k: 'plate', l: 'Number plate', r: 1 }, { k: 'type', l: 'Vehicle type', t: 'select', r: 1, o: [['Sedan', 'Sedan Cars'], ['SUV', 'SUV'], ['KDH', 'KDH'], ['Hatchback', 'Hatchback']], ph: 'Select vehicle type' }, { k: 'color', l: 'Vehicle colour' }, { k: 'seats', l: 'Vehicle seats', t: 'number' }], seg: { title: 'Air conditioning', k: 'ac', def: 'A/C', nb: 1, o: [['A/C'], ['Non A/C']] }, onSave: b => save('/fleet', d?.id, b) });
-        const createUs = async (b, password) => {
-          const credential = await createUserWithEmailAndPassword(userAuth, b.email, password);
+        const d = c.data || {}, m = document.createElement('div'), x = () => { m.remove(); removeEventListener('keydown', esc); }, esc = e => e.key == 'Escape' && x(), sg = c.seg;
+        m.className = 'mo';
+        const fld = f => `<label${f.w ? ' class="w"' : ''}><span>${f.l}${f.r ? ' <i>*</i>' : ''}</span>${f.t == 'select' ? `<select id="f_${f.k}"><option value="">${f.ph || 'Select'}</option>${f.o.map(o => { const [a, b] = Array.isArray(o) ? o : [o, o]; return `<option value="${E(a)}" ${a == d[f.k] ? 'selected' : ''}>${E(b)}</option>`; }).join('')}</select>` : `<input id="f_${f.k}" type="${f.t || 'text'}" value="${E(d[f.k] ?? '')}">`}</label>`;
+        m.innerHTML = `<div class="mb"><h3>${c.title}</h3><div class="fg">${c.fields.map(fld).join('')}${c.passwords ? `<label><span>Password <i>*</i></span><input id="f_password" type="password" minlength="6" autocomplete="new-password"></label><label><span>Confirm password <i>*</i></span><input id="f_passwordConfirm" type="password" minlength="6" autocomplete="new-password"></label>` : ''}</div>${sg ? `<h3>${sg.title}</h3><div class="seg ${sg.nb ? 'nb' : ''}">${sg.o.map(o => `<label class="${o[2] || ''}"><input type="radio" name="f_seg" value="${E(o[0])}" ${(d[sg.k] || sg.def) == o[0] ? 'checked' : ''}><span>${o[1] || o[0]}</span></label>`).join('')}</div>` : ''}<p id="merr"></p><div class="ac"><button class="btn o" id="mc">Cancel</button><button class="btn" id="ms">${c.save}</button></div></div>`;
+        document.body.appendChild(m);
+        addEventListener('keydown', esc);
+        m.onclick = e => { if (e.target == m || e.target.id == 'mc') x(); };
+        m.querySelector('#ms').onclick = async () => {
+          const b = {};
+          c.fields.forEach(f => b[f.k] = m.querySelector(`#f_${f.k}`).value.trim());
+          if (sg) b[sg.k] = m.querySelector('[name=f_seg]:checked').value;
+          const miss = c.fields.filter(f => f.r && !b[f.k]).map(f => f.l);
+          if (miss.length) return m.querySelector('#merr').textContent = `${miss.join(', ')} ${miss.length > 1 ? 'are' : 'is'} required.`;
+          const password = c.passwords ? m.querySelector('#f_password').value : '';
+          if (c.passwords && password.length < 6) return m.querySelector('#merr').textContent = 'Password must be at least 6 characters.';
+          if (c.passwords && password !== m.querySelector('#f_passwordConfirm').value) return m.querySelector('#merr').textContent = 'Passwords do not match.';
           try {
-            await save('/users', null, b);
-          }
-          catch (e) {
-            await deleteUser(credential.user).catch(() => { });
-            throw e;
-          }
-          finally {
-            await signOut(userAuth);
+            await c.onSave(b, password);
+            x();
+            load();
+          } catch (e) {
+            m.querySelector('#merr').textContent = e.message;
           }
         };
-        const openUs = d => openForm({ title: d ? 'Edit user' : 'User details', data: d, passwords: !d, save: d ? 'Save changes' : 'Create user', fields: [{ k: 'name', l: 'Full name', r: 1 }, { k: 'email', l: 'Email', t: 'email', r: 1 }, { k: 'phone', l: 'Phone', t: 'tel' }, { k: 'role', l: 'Role', t: 'select', r: 1, o: ['Owner', 'Dispatcher', 'Driver', 'Accountant'], ph: 'Select role' }], seg: { title: 'Status', k: 'status', def: 'Active', o: [['Active', '', 'stAvailable'], ['Inactive', '', 'stUnavailable']] }, onSave: (b, password) => d ? save('/users', d.id, b) : createUs(b, password) });
-      const patch = (id, body) => api('/bookings/' + encodeURIComponent(id), { method: 'PATCH', body: JSON.stringify(body) }).then(load).catch(e => alert(e.message));
-      document.addEventListener('click', e => {
-          const t = e.target;
-          if (t.dataset.quote) {
-              const booking = BK.find(item => item.id == t.dataset.quote);
-              const distanceText = $('#dist').value;
-              const distance = Number(distanceText);
-              const waitingHours = $('#waitHrs').value === '' ? 0 : Number($('#waitHrs').value);
-              if (!booking || distanceText === '' || !Number.isFinite(distance) || distance < 0 || !Number.isFinite(waitingHours) || waitingHours < 0)
-                  return alert('Enter a valid distance and waiting time.');
-              const rateKey = { Sedan: 'rateSedan', SUV: 'rateSUV', KDH: 'rateKDH', Hatchback: 'rateHatch' }[booking.type];
-              const pickup = `${booking.pickup} ${booking.dropoff}`.toLowerCase();
-              const pickupHour = Number((booking.time || '00:00').split(':')[0]);
-              const numberOrZero = value => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : 0;
-              const subtotal = Math.max(0, numberOrZero(CFG.baseFare)) +
-                  distance * numberOrZero(rateKey ? CFG[rateKey] : 0) +
-                  (/(airport|\bcmb\b)/i.test(pickup) ? numberOrZero(CFG.airportSurcharge) : 0) +
-                  (pickupHour < 6 || pickupHour >= 22 ? numberOrZero(CFG.nightSurcharge) : 0) +
-                  waitingHours * numberOrZero(CFG.waitingCharge) +
-                  numberOrZero(CFG.bookingFee) +
-                  numberOrZero(CFG.tollCharges) +
-                  numberOrZero(CFG.parkingCharges);
-              const taxableFare = Math.max(numberOrZero(CFG.minimumFare), subtotal);
-              $('#fa').value = Math.round(taxableFare * (1 + numberOrZero(CFG.taxPercent) / 100));
-              return;
-          }
-          if (t.dataset.acc)
-              return patch(t.dataset.acc, { status: 'Accepted', driver: $('#dr').value, driverId: ((DR.find(d => d.name == $('#dr').value)) || {}).id || '', vehicle: $('#ve').value, payment: $('#pm').value, fare: $('#fa').value, distanceKm: $('#dist').value, waitingHours: $('#waitHrs').value });
-          if (t.dataset.sv)
-              return api('/bookings/' + encodeURIComponent(t.dataset.sv), { method: 'PATCH', body: JSON.stringify({ driver: $('#dr').value, driverId: ((DR.find(d => d.name == $('#dr').value)) || {}).id || '', vehicle: $('#ve').value, payment: $('#pm').value, fare: $('#fa').value, distanceKm: $('#dist').value, waitingHours: $('#waitHrs').value }) }).then(() => { alert('Saved'); load(); }).catch(e => alert(e.message));
-          if (t.dataset.done)
-              return confirm('Mark this trip as completed?') && patch(t.dataset.done, { status: 'Completed' });
-          if (t.dataset.noshow)
-              return confirm('Mark this booking as a no-show? The configured grace period must have elapsed.') && patch(t.dataset.noshow, { status: 'No-show' });
-          if (t.dataset.can) {
-              const r = prompt('Reason for cancelling?');
-              return r && patch(t.dataset.can, { status: 'Cancelled', reason: r });
-          }
-          if (t.dataset.dec) {
-              const r = prompt('Reason for declining?');
-              return r && patch(t.dataset.dec, { status: 'Rejected', reason: r });
-          }
-          if (t.id == 'addDr')
-              return openDr();
-          if (t.dataset.edd)
-              return openDr(DR.find(x => x.id == t.dataset.edd));
-          if (t.dataset.st)
-              return api('/drivers/' + t.dataset.id, { method: 'PATCH', body: JSON.stringify({ status: t.dataset.st }) }).then(load).catch(e => alert(e.message));
-          if (t.dataset.rmd)
-              return confirm('Remove this driver?') && api('/drivers/' + t.dataset.rmd, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
-          if (t.id == 'addVe')
-              return openVe();
-          if (t.dataset.edv)
-              return openVe(FLEET.find(x => x.id == t.dataset.edv));
-          if (t.dataset.rmv)
-              return confirm('Remove this vehicle?') && api('/fleet/' + t.dataset.rmv, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
-          if (t.id == 'addUs')
-              return openUs();
-          if (t.dataset.edu)
-              return openUs(US.find(x => x.id == t.dataset.edu));
-          if (t.dataset.rmu)
-              return confirm('Remove this user?') && api('/users/' + t.dataset.rmu, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
-          if (t.dataset.cat) {
-              const c = t.dataset.cat, cats = { Sedan: true, SUV: true, KDH: true, Hatchback: true, ...(CFG.categories || {}) };
-              cats[c] = cats[c] === false;
-              return api('/settings', { method: 'POST', body: JSON.stringify({ categories: cats }) }).then(() => { CFG.categories = cats; route(); }).catch(e => alert(e.message));
-          }
-          if (t.id == 'sv') {
-              document.querySelectorAll('[data-k]').forEach(i => {
-                  CFG[i.dataset.k] = i.type == 'checkbox' ? i.checked : i.type == 'number' ? Number(i.value) : i.value;
-              });
-              return api('/settings', { method: 'POST', body: JSON.stringify(CFG) }).then(() => alert('Saved')).catch(e => alert(e.message));
-          }
-          if (t.id == 'ex' && EXP) {
-              const c = '\ufeff' + [EXP.head, ...EXP.rows].map(r => r.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
-              const a = document.createElement('a');
-              a.href = URL.createObjectURL(new Blob([c], { type: 'text/csv;charset=utf-8' }));
-              a.download = EXP.name + '-' + (RF.from || 'start') + '-to-' + (RF.to || 'today') + '.csv';
-              a.click();
-              return;
-          }
-          const tr = t.closest('tr[data-go]');
-          if (tr && !t.closest('button'))
-              location.hash = tr.dataset.go;
-          else if (t.closest('tr[data-go]') && t.classList.contains('g'))
-              location.hash = t.closest('tr').dataset.go;
-      });
-      $('#lf').onsubmit = async (e) => { e.preventDefault(); $('#err').textContent = ''; try {
-          await signInWithEmailAndPassword(auth, $('#em').value, $('#pw').value);
+        m.querySelector('input,select').focus();
       }
-      catch {
+
+      const save = (p, id, b) => api(id ? `${p}/${id}` : p, { method: id ? 'PATCH' : 'POST', body: JSON.stringify(b) });
+      const openDr = d => openForm({ title: d ? 'Edit driver' : 'Driver details', data: d, save: d ? 'Save changes' : 'Save driver', fields: [{ k: 'firstName', l: 'First name', r: 1 }, { k: 'lastName', l: 'Last name' }, { k: 'phone', l: 'Phone number', t: 'tel', r: 1 }, { k: 'email', l: 'Email', t: 'email' }, { k: 'nic', l: 'NIC No' }, { k: 'license', l: 'Driving licence' }, { k: 'address', l: 'Address', w: 1 }, { k: 'city', l: 'City (district)', t: 'select', o: DIST, ph: 'Select district' }], seg: { title: 'Availability', k: 'status', def: 'Available', o: [['Available', '', 'stAvailable'], ['Unavailable', '', 'stUnavailable'], ['On trip', '', 'stOntrip']] }, onSave: b => save('/drivers', d?.id, b) });
+      const openVe = d => openForm({ title: d ? 'Edit vehicle' : 'Vehicle details', data: d, save: d ? 'Save changes' : 'Save vehicle', fields: [{ k: 'name', l: 'Vehicle name', r: 1 }, { k: 'model', l: 'Vehicle model', r: 1 }, { k: 'plate', l: 'Number plate', r: 1 }, { k: 'type', l: 'Vehicle type', t: 'select', r: 1, o: [['Sedan', 'Sedan Cars'], ['SUV', 'SUV'], ['KDH', 'KDH'], ['Hatchback', 'Hatchback']], ph: 'Select vehicle type' }, { k: 'color', l: 'Vehicle colour' }, { k: 'seats', l: 'Vehicle seats', t: 'number' }], seg: { title: 'Air conditioning', k: 'ac', def: 'A/C', nb: 1, o: [['A/C'], ['Non A/C']] }, onSave: b => save('/fleet', d?.id, b) });
+      const createUs = async (b, password) => {
+        const credential = await createUserWithEmailAndPassword(userAuth, b.email, password);
+        try {
+          await save('/users', null, b);
+        } catch (e) {
+          await deleteUser(credential.user).catch(() => {});
+          throw e;
+        } finally {
+          await signOut(userAuth);
+        }
+      };
+      const openUs = d => openForm({ title: d ? 'Edit user' : 'User details', data: d, passwords: !d, save: d ? 'Save changes' : 'Create user', fields: [{ k: 'name', l: 'Full name', r: 1 }, { k: 'email', l: 'Email', t: 'email', r: 1 }, { k: 'phone', l: 'Phone', t: 'tel' }, { k: 'role', l: 'Role', t: 'select', r: 1, o: ['Owner', 'Dispatcher', 'Driver', 'Accountant'], ph: 'Select role' }], seg: { title: 'Status', k: 'status', def: 'Active', o: [['Active', '', 'stAvailable'], ['Inactive', '', 'stUnavailable']] }, onSave: (b, password) => d ? save('/users', d.id, b) : createUs(b, password) });
+      const patch = (id, body) => api(`/bookings/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(body) }).then(load).catch(e => alert(e.message));
+
+      document.addEventListener('click', e => {
+        const t = e.target;
+        if (t.dataset.quote) {
+          const booking = BK.find(item => item.id == t.dataset.quote);
+          const distanceText = $('#dist').value;
+          const distance = Number(distanceText);
+          const waitingHours = $('#waitHrs').value === '' ? 0 : Number($('#waitHrs').value);
+          if (!booking || distanceText === '' || !Number.isFinite(distance) || distance < 0 || !Number.isFinite(waitingHours) || waitingHours < 0)
+            return alert('Enter a valid distance and waiting time.');
+          const rateKey = { Sedan: 'rateSedan', SUV: 'rateSUV', KDH: 'rateKDH', Hatchback: 'rateHatch' }[booking.type];
+          const pickup = `${booking.pickup} ${booking.dropoff}`.toLowerCase();
+          const pickupHour = Number((booking.time || '00:00').split(':')[0]);
+          const numberOrZero = value => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : 0;
+          const subtotal = Math.max(0, numberOrZero(CFG.baseFare)) +
+            distance * numberOrZero(rateKey ? CFG[rateKey] : 0) +
+            (/(airport|\bcmb\b)/i.test(pickup) ? numberOrZero(CFG.airportSurcharge) : 0) +
+            (pickupHour < 6 || pickupHour >= 22 ? numberOrZero(CFG.nightSurcharge) : 0) +
+            waitingHours * numberOrZero(CFG.waitingCharge) +
+            numberOrZero(CFG.bookingFee) +
+            numberOrZero(CFG.tollCharges) +
+            numberOrZero(CFG.parkingCharges);
+          const taxableFare = Math.max(numberOrZero(CFG.minimumFare), subtotal);
+          $('#fa').value = Math.round(taxableFare * (1 + numberOrZero(CFG.taxPercent) / 100));
+          return;
+        }
+        if (t.dataset.acc)
+          return patch(t.dataset.acc, { status: 'Accepted', driver: $('#dr').value, driverId: ((DR.find(d => d.name == $('#dr').value)) || {}).id || '', vehicle: $('#ve').value, payment: $('#pm').value, fare: $('#fa').value, distanceKm: $('#dist').value, waitingHours: $('#waitHrs').value });
+        if (t.dataset.sv)
+          return api(`/bookings/${encodeURIComponent(t.dataset.sv)}`, { method: 'PATCH', body: JSON.stringify({ driver: $('#dr').value, driverId: ((DR.find(d => d.name == $('#dr').value)) || {}).id || '', vehicle: $('#ve').value, payment: $('#pm').value, fare: $('#fa').value, distanceKm: $('#dist').value, waitingHours: $('#waitHrs').value }) }).then(() => { alert('Saved'); load(); }).catch(e => alert(e.message));
+        if (t.dataset.done)
+          return confirm('Mark this trip as completed?') && patch(t.dataset.done, { status: 'Completed' });
+        if (t.dataset.noshow)
+          return confirm('Mark this booking as a no-show? The configured grace period must have elapsed.') && patch(t.dataset.noshow, { status: 'No-show' });
+        if (t.dataset.can) {
+          const r = prompt('Reason for cancelling?');
+          return r && patch(t.dataset.can, { status: 'Cancelled', reason: r });
+        }
+        if (t.dataset.dec) {
+          const r = prompt('Reason for declining?');
+          return r && patch(t.dataset.dec, { status: 'Rejected', reason: r });
+        }
+        if (t.id == 'addDr') return openDr();
+        if (t.dataset.edd) return openDr(DR.find(x => x.id == t.dataset.edd));
+        if (t.dataset.st) return api(`/drivers/${t.dataset.id}`, { method: 'PATCH', body: JSON.stringify({ status: t.dataset.st }) }).then(load).catch(e => alert(e.message));
+        if (t.dataset.rmd) return confirm('Remove this driver?') && api(`/drivers/${t.dataset.rmd}`, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
+        if (t.id == 'addVe') return openVe();
+        if (t.dataset.edv) return openVe(FLEET.find(x => x.id == t.dataset.edv));
+        if (t.dataset.rmv) return confirm('Remove this vehicle?') && api(`/fleet/${t.dataset.rmv}`, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
+        if (t.id == 'addUs') return openUs();
+        if (t.dataset.edu) return openUs(US.find(x => x.id == t.dataset.edu));
+        if (t.dataset.rmu) return confirm('Remove this user?') && api(`/users/${t.dataset.rmu}`, { method: 'DELETE' }).then(load).catch(e => alert(e.message));
+        if (t.dataset.cat) {
+          const c = t.dataset.cat, cats = { Sedan: true, SUV: true, KDH: true, Hatchback: true, ...(CFG.categories || {}) };
+          cats[c] = cats[c] === false;
+          return api('/settings', { method: 'POST', body: JSON.stringify({ categories: cats }) }).then(() => { CFG.categories = cats; route(); }).catch(e => alert(e.message));
+        }
+        if (t.id == 'sv') {
+          document.querySelectorAll('[data-k]').forEach(i => {
+            CFG[i.dataset.k] = i.type == 'checkbox' ? i.checked : i.type == 'number' ? Number(i.value) : i.value;
+          });
+          return api('/settings', { method: 'POST', body: JSON.stringify(CFG) }).then(() => alert('Saved')).catch(e => alert(e.message));
+        }
+        if (t.id == 'ex' && EXP) {
+          const c = `\ufeff${[EXP.head, ...EXP.rows].map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\r\n')}`;
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob([c], { type: 'text/csv;charset=utf-8' }));
+          a.download = `${EXP.name}-${RF.from || 'start'}-to-${RF.to || 'today'}.csv`;
+          a.click();
+          return;
+        }
+        const tr = t.closest('tr[data-go]');
+        if (tr && !t.closest('button')) location.hash = tr.dataset.go;
+        else if (t.closest('tr[data-go]') && t.classList.contains('g')) location.hash = t.closest('tr').dataset.go;
+      });
+
+      $('#lf').onsubmit = async (e) => {
+        e.preventDefault();
+        $('#err').textContent = '';
+        try {
+          await signInWithEmailAndPassword(auth, $('#em').value, $('#pw').value);
+        } catch {
           $('#err').textContent = 'Invalid email or password.';
-      } };
-      $('#fp').onclick = async (e) => { e.preventDefault(); if (!$('#em').value)
-          return $('#err').textContent = 'Enter your email first.'; await sendPasswordResetEmail(auth, $('#em').value).catch(() => { }); $('#err').style.color = '#34d399'; $('#err').textContent = 'If the account exists, a reset email was sent.'; };
+        }
+      };
+      $('#fp').onclick = async (e) => {
+        e.preventDefault();
+        if (!$('#em').value) return $('#err').textContent = 'Enter your email first.';
+        await sendPasswordResetEmail(auth, $('#em').value).catch(() => {});
+        $('#err').style.color = '#34d399';
+        $('#err').textContent = 'If the account exists, a reset email was sent.';
+      };
       $('#lo').onclick = e => { e.preventDefault(); signOut(auth); };
-      onAuthStateChanged(auth, u => { $('#login').classList.toggle('hidden', !!u); document.querySelector('.tsw.fx').classList.toggle('hidden', !!u); $('#shell').classList.toggle('hidden', !u); if (u) {
+
+      onAuthStateChanged(auth, u => {
+        $('#login').classList.toggle('hidden', !!u);
+        document.querySelector('.tsw.fx').classList.toggle('hidden', !!u);
+        $('#shell').classList.toggle('hidden', !u);
+        if (u) {
           STACK = [currentLocation()];
           syncBack();
           $('#un').textContent = u.displayName || u.email;
           $('#av').textContent = (u.displayName || u.email || '?')[0].toUpperCase();
           load();
           route();
-      } });
+        }
+      });
+
       setInterval(() => auth.currentUser && load(), 10000);
     </script>
   </body>

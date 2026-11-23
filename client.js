@@ -1,12 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  sendPasswordResetEmail, 
-  updateProfile, 
-  signOut, 
-  onAuthStateChanged 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+  signOut,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -258,7 +258,7 @@ document.getElementById('btn-add-bill')?.addEventListener('click', () => {
       <td>${newItem.type}</td>
       <td><button style="color:#f87171; background:none; border:none; cursor:pointer;" class="btn-delete-row">Delete</button></td>
     `;
-    
+
     tr.querySelector('.btn-delete-row')?.addEventListener('click', () => {
       const idx = salesData.indexOf(newItem);
       if (idx > -1) salesData.splice(idx, 1);
@@ -525,7 +525,7 @@ const views = {
 function showView(viewName) {
   Object.keys(views).forEach(key => views[key]?.classList.add('hidden'));
   const currentView = views[viewName];
-  
+
   if (currentView) {
     currentView.classList.remove('hidden');
     currentView.style.animation = 'none';

@@ -251,7 +251,8 @@ app.post('/api/settings', requireStaff, (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid booking confirmation mode.' });
     }
     settingsStore = { ...settingsStore, ...newSettings };
-    db.settings = settingsStore; saveDb();
+    db.settings = settingsStore;
+    saveDb();
     console.log('[SETTINGS DEBUG] Updated settings:', settingsStore);
     return res.status(200).json({ success: true, settings: settingsStore, message: 'Settings updated successfully.' });
   } catch (err) {
@@ -309,7 +310,12 @@ const saveToPg = () => {
 };
 
 const saveDb = () => {
-  try { fs.mkdirSync(path.dirname(DB_FILE), { recursive: true }); fs.writeFileSync(DB_FILE, JSON.stringify(db)); } catch (e) { console.error('Save failed:', e.message); }
+  try {
+    fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
+    fs.writeFileSync(DB_FILE, JSON.stringify(db));
+  } catch (e) {
+    console.error('Save failed:', e.message);
+  }
   if (pool && pgReady) saveToPg();
 };
 
@@ -329,6 +335,7 @@ if (pool) {
     console.error('PostgreSQL load failed, using the JSON file only:', e.message);
   }
 }
+
 const bookingsStore = db.bookings;
 settingsStore = { ...settingsStore, ...(db.settings || {}) };
 const rateLimit = new Map();
@@ -385,7 +392,7 @@ const toE164 = (p) => {
   return d ? '+' + d : '';
 };
 const niceDate = (s) => {
-  const d = new Date(s + 'T00:00:00');
+  const d = new Date(`${s}T00:00:00`);
   return isNaN(d) ? s : d.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 };
 
@@ -426,18 +433,18 @@ function buildMessage(b, kind, testFor) {
   ];
   if (accepted && b.vehicle) rows.push(['Vehicle', b.vehicle]);
   if (accepted && b.driver) rows.push(['Driver', b.driver]);
-  if (accepted && Number(b.fare) > 0) rows.push(['Fare', (settingsStore.currency || 'LKR') + ' ' + Number(b.fare).toLocaleString('en-US')]);
+  if (accepted && Number(b.fare) > 0) rows.push(['Fare', `${settingsStore.currency || 'LKR'} ${Number(b.fare).toLocaleString('en-US')}`]);
 
   const badge = accepted ? 'BOOKING CONFIRMED' : 'BOOKING UPDATE';
   const color = accepted ? ['#d9f4de', '#1c7a2f'] : ['#fde0e0', '#b3262b'];
   const heading = accepted ? 'Your booking has been confirmed' : 'We could not accept your booking';
   const paras = accepted
     ? [
-        'Thank you for choosing ' + company.name + '. We are pleased to confirm that your booking has been accepted.',
+        `Thank you for choosing ${company.name}. We are pleased to confirm that your booking has been accepted.`,
         'Our team will contact you soon to confirm the final details of your trip. If anything changes before then, please reply to this email or call us.',
       ]
     : [
-        'Thank you for your interest in ' + company.name + '. Unfortunately we are unable to accept this booking' + (b.reason ? ' (' + b.reason + ')' : '') + '.',
+        `Thank you for your interest in ${company.name}. Unfortunately we are unable to accept this booking${b.reason ? ` (${b.reason})` : ''}.`,
         'We apologise for the inconvenience. You are welcome to submit a new request for another date or vehicle, or contact us and we will gladly help.',
       ];
 
@@ -473,7 +480,7 @@ Phone: <a href="tel:${esc(company.phone)}" style="color:#1565e0;text-decoration:
     `Dear ${first},`, '', ...paras, '',
     ...rows.map(([k, v]) => `${k}: ${v}`), '',
     `Need help? Email ${company.email} or call ${company.phone}.`, '',
-    `Kind regards,`, `The ${company.name} team`,
+    'Kind regards,', `The ${company.name} team`,
   ].join('\n');
 
   const sms = accepted
