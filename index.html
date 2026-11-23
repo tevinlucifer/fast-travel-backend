@@ -298,6 +298,8 @@
         -webkit-backdrop-filter: blur(16px);
         transition: transform .18s, opacity .2s, border-color .2s;
       }
+      .nav-toggle { display: none; }
+      .nav-backdrop { display: none; }
       .bkb svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
       .bkb:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(255,255,255,.3); }
       .bkb:disabled { opacity: .35; cursor: default; }
@@ -715,49 +717,73 @@
       }
       @media(max-width:600px) {
         html, body { width: 100%; overflow-x: hidden; }
-        #shell { display: block; min-height: 100vh; min-height: 100dvh; padding-bottom: 64px; }
+        #shell { display: block; min-height: 100vh; min-height: 100dvh; padding-bottom: 0; }
         #shell .mn { min-width: 0; }
         .side {
           position: fixed;
           z-index: 40;
-          top: auto;
-          right: 0;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: calc(60px + env(safe-area-inset-bottom));
-          flex-direction: row;
-          align-items: center;
-          padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
-          border-right: 0;
-          border-top: 1px solid var(--ln);
-          box-shadow: 0 -8px 24px rgba(5,10,20,.18);
+          inset: 0 auto 0 0;
+          width: min(280px,84vw);
+          height: 100vh;
+          height: 100dvh;
+          flex-direction: column;
+          align-items: stretch;
+          padding: 16px 12px calc(16px + env(safe-area-inset-bottom));
+          border-right: 1px solid var(--ln);
+          border-top: 0;
+          border-radius: 0 18px 18px 0;
+          box-shadow: 8px 0 28px rgba(5,10,20,.24);
+          transform: translateX(-105%);
+          transition: transform .22s ease;
         }
-        .brand { display: none; }
+        #shell.mobile-nav-open .side { transform: translateX(0); }
+        .nav-toggle {
+          width: 36px;
+          height: 36px;
+          flex: none;
+          display: grid;
+          place-items: center;
+          padding: 0;
+          border: 1px solid var(--ln);
+          border-radius: 11px;
+          color: var(--ink);
+          background: var(--card);
+          cursor: pointer;
+        }
+        .nav-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+        .nav-backdrop:not(.hidden) {
+          display: block;
+          position: fixed;
+          z-index: 35;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          padding: 0;
+          border: 0;
+          background: rgba(3,8,18,.5);
+        }
+        .brand { display: flex; justify-content: flex-start; padding: 4px 8px 24px; }
+        .brand b { display: block; }
         #nv {
           min-width: 0;
-          flex-direction: row;
-          align-items: center;
-          justify-content: space-between;
-          gap: 3px;
-          overflow-x: auto;
-          scrollbar-width: none;
+          flex-direction: column;
+          align-items: stretch;
+          justify-content: flex-start;
+          gap: 7px;
+          overflow: auto;
         }
-        #nv::-webkit-scrollbar { display: none; }
-        #nv a {
-          flex: 1 1 0;
-          min-width: 32px;
-          height: 44px;
-          padding: 0;
-          border-radius: 12px;
-        }
+        #nv a { flex: none; min-width: 0; justify-content: flex-start; gap: 12px; height: 44px; padding: 0 12px; border-radius: 12px; }
+        #nv a span { display: inline; }
         .side .out {
           flex: none;
-          width: 36px;
+          width: auto;
           height: 44px;
-          margin-left: 4px;
-          padding: 0;
+          margin: 0;
+          justify-content: flex-start;
+          gap: 12px;
+          padding: 0 12px;
         }
+        .side .out span { display: inline; }
         .top {
           position: sticky;
           top: 0;
@@ -871,7 +897,8 @@
       </form>
     </section>
     <section id="shell" class="hidden">
-      <aside class="side">
+      <button id="navBackdrop" class="nav-backdrop hidden" type="button" aria-label="Close navigation" tabindex="-1"></button>
+      <aside class="side" id="side">
         <div class="brand"><div class="logo">TD</div><b>Lanka Rides</b></div>
         <div id="nv"></div>
         <a href="#" id="lo" class="out">
@@ -883,6 +910,9 @@
       </aside>
       <div class="mn">
         <header class="top">
+          <button type="button" class="nav-toggle" id="navToggle" aria-label="Open navigation menu" aria-controls="nv" aria-expanded="false">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
           <button id="bk" class="bkb" aria-label="Go back" title="Back" disabled>
             <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
           </button>
@@ -1114,8 +1144,25 @@
 
       let STACK = [];
       const syncBack = () => { $('#bk').disabled = STACK.length < 2; };
+      const mobileViewport = matchMedia('(max-width: 600px)');
+      const setMobileNav = open => {
+        const isOpen = open && mobileViewport.matches;
+        $('#shell').classList.toggle('mobile-nav-open', isOpen);
+        $('#navToggle').setAttribute('aria-expanded', String(isOpen));
+        $('#navToggle').setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+        $('#navBackdrop').classList.toggle('hidden', !isOpen);
+        $('#side').inert = mobileViewport.matches && !isOpen;
+        $('#side').setAttribute('aria-hidden', String(mobileViewport.matches && !isOpen));
+      };
+      setMobileNav(false);
+      $('#navToggle').onclick = () => setMobileNav(!$('#shell').classList.contains('mobile-nav-open'));
+      $('#navBackdrop').onclick = () => setMobileNav(false);
+      addEventListener('keydown', e => { if (e.key == 'Escape') setMobileNav(false); });
+      if (mobileViewport.addEventListener) mobileViewport.addEventListener('change', () => setMobileNav(false));
+      else mobileViewport.addListener(() => setMobileNav(false));
       const currentLocation = () => location.pathname + location.hash;
       const onNavigation = () => {
+        setMobileNav(false);
         const current = currentLocation();
         if (STACK[STACK.length - 2] === current) STACK.pop();
         else if (STACK[STACK.length - 1] !== current) STACK.push(current);
@@ -1130,6 +1177,7 @@
         const link = e.target.closest('a');
         if (!link || link.origin !== location.origin || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
         e.preventDefault();
+        setMobileNav(false);
         if (link.pathname === location.pathname && !location.hash) return;
         history.pushState(null, '', link.pathname);
         STACK.push(currentLocation());
@@ -1319,7 +1367,7 @@
         $('#err').style.color = '#34d399';
         $('#err').textContent = 'If the account exists, a reset email was sent.';
       };
-      $('#lo').onclick = e => { e.preventDefault(); signOut(auth); };
+      $('#lo').onclick = e => { e.preventDefault(); setMobileNav(false); signOut(auth); };
 
       onAuthStateChanged(auth, u => {
         $('#login').classList.toggle('hidden', !!u);
