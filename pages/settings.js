@@ -2,17 +2,17 @@ export default function createSettingsPage(ctx) {
   return {
     settings() {
       const { CFG, E, head } = ctx;
-      const field = (key, label, type = 'text') => `<label>${label}<input data-k="${key}" type="${type}" value="${E(CFG[key] ?? '')}"${type === 'number' ? ' min="0" step="any"' : ''}></label>`;
-      const area = (key, label, hint = '') => `<label style="display:flex;flex-direction:column;align-items:stretch">${label}${hint ? `<small class="sub">${hint}</small>` : ''}<textarea data-k="${key}" rows="3" style="width:100%;padding:10px 12px;resize:vertical">${E(CFG[key] ?? '')}</textarea></label>`;
-      const toggle = (key, label) => `<label style="justify-content:flex-start"><input data-k="${key}" type="checkbox" style="width:auto" ${CFG[key] ? 'checked' : ''}>${label}</label>`;
-      const select = (key, label, options) => `<label>${label}<select data-k="${key}">${options.map(option => `<option ${CFG[key] === option ? 'selected' : ''}>${E(option)}</option>`).join('')}</select></label>`;
-      const card = (title, content) => `<div class="cd"><h4>${title}</h4>${content}</div>`;
+      const field = (key, label, type = 'text') => `<label>${label}<input class="glass-input" data-k="${key}" type="${type}" value="${E(CFG[key] ?? '')}"${type === 'number' ? ' min="0" step="any"' : ''}></label>`;
+      const area = (key, label, hint = '') => `<label style="display:flex;flex-direction:column;align-items:stretch">${label}${hint ? `<small class="sub">${hint}</small>` : ''}<textarea class="glass-input" data-k="${key}" rows="3" style="width:100%;padding:10px 12px;resize:vertical">${E(CFG[key] ?? '')}</textarea></label>`;
+      const toggle = (key, label) => `<label class="glass-toggle-row" style="justify-content:flex-start"><input data-k="${key}" type="checkbox" style="width:auto" ${CFG[key] ? 'checked' : ''}>${label}</label>`;
+      const select = (key, label, options) => `<label>${label}<select class="glass-input" data-k="${key}">${options.map(option => `<option ${CFG[key] === option ? 'selected' : ''}>${E(option)}</option>`).join('')}</select></label>`;
+      const card = (title, content) => `<div class="cd glass-card"><h4>${title}</h4>${content}</div>`;
       const categories = ['Sedan', 'SUV', 'KDH', 'Hatchback'].map(category => {
         const enabled = (CFG.categories || {})[category] !== false;
-        return `<div class="row" style="align-items:center;margin:12px 0"><span>${category}</span><button class="sw ${enabled ? 'on' : 'off'}" data-cat="${category}">${enabled ? 'Enabled' : 'Disabled'}</button></div>`;
+        return `<div class="row glass-row" style="align-items:center;margin:12px 0"><span>${category}</span><button class="sw glass-pill ${enabled ? 'on' : 'off'}" data-cat="${category}">${enabled ? 'Enabled' : 'Disabled'}</button></div>`;
       }).join('');
 
-      return head('Settings', 'Configure booking operations and website content', `<a class="btn o" href="#users" style="text-decoration:none">Users and roles</a><button class="btn" id="sv">Save changes</button>`) +
+      return head('Settings', 'Configure booking operations and website content', `<a class="btn o glass-btn" href="#users" style="text-decoration:none">Users and roles</a><button class="btn glass-btn" id="sv">Save changes</button>`) +
         `<div class="g g3 set">
           ${card('Booking availability', `${toggle('onlineBookings', 'Accept online bookings')}${toggle('maintenanceMode', 'Maintenance mode (blocks new bookings)')}${field('minNotice', 'Minimum booking notice (hours)', 'number')}${field('maxDuration', 'Maximum trip duration (days)', 'number')}${field('buffer', 'Buffer between trips (minutes)', 'number')}${field('grace', 'No-show grace period (minutes)', 'number')}${field('maxPassengers', 'Maximum passengers per booking', 'number')}${area('closedDates', 'Closed dates (comma-separated YYYY-MM-DD)')}${field('airportSameDayHours', 'Airport transfer notice (hours)', 'number')}`)}
           ${card('Cancellation policy', `${field('cancelFee48', 'Fee at least 48 hours before (%)', 'number')}${field('cancelFee24', 'Fee 24–48 hours before (%)', 'number')}${field('cancelFeeUnder24', 'Fee under 24 hours before (%)', 'number')}`)}

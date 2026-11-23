@@ -382,7 +382,7 @@ const COMPANY = {
   phone: process.env.COMPANY_PHONE || '+94754762056',
 };
 
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c]));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": "'" }[c]));
 const toE164 = (p) => {
   const d = String(p || '').replace(/[^\d+]/g, '');
   if (d.startsWith('+')) return d;

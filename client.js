@@ -656,7 +656,7 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 // Bookings: load + update status (staff only, verified by Firebase ID token)
 // ---------------------------------------------------------------------------
 const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, ch => (
-  { '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[ch]
+  { '&': '&', '<': '<', '>': '>', '"': '"', "'": "'" }[ch]
 ));
 
 async function loadBookings() {

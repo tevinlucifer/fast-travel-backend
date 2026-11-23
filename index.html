@@ -580,7 +580,13 @@
       });
 
       const $ = s => document.querySelector(s);
-      const E = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c]));
+      const E = s => String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[c]));
       const LKR = n => n ? `${CFG.currency || 'LKR'} ${Number(n).toLocaleString()}` : '—';
       const API = (['5500', '5501'].includes(location.port) || location.protocol === 'file:') ? 'http://localhost:3000' : '';
 
