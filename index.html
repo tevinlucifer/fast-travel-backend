@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <title>Lanka Rides Back Office — Glassy V5</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -697,6 +697,134 @@
       }
       [data-theme=light] .mini-chart i {
         background: linear-gradient(180deg,#a8b94f,#71853c);
+      }
+      @media(max-width:900px) {
+        .side { width: 68px; padding: 16px 8px; }
+        .brand { padding: 0 0 20px; }
+        .brand b, #nv a span, .side .out span { display: none; }
+        #nv a, .side .out { justify-content: center; padding: 12px 0; }
+        .top { padding: 10px 16px; }
+        main { padding: 6px 16px 28px; }
+        .dash-grid { grid-template-columns: minmax(170px,.75fr) minmax(0,1.8fr); }
+        .dash-bottom, .dg { grid-template-columns: minmax(0,1fr); }
+        .operation-card { min-height: 430px; }
+        .operation-orb { width: 150px; height: 150px; }
+        .g.g3, .g.g4, .g.g5, .two { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        .tw { max-width: 100%; overflow: auto; }
+        table { min-width: 640px; }
+      }
+      @media(max-width:600px) {
+        html, body { width: 100%; overflow-x: hidden; }
+        #shell { display: block; min-height: 100vh; min-height: 100dvh; padding-bottom: 64px; }
+        #shell .mn { min-width: 0; }
+        .side {
+          position: fixed;
+          z-index: 40;
+          top: auto;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: calc(60px + env(safe-area-inset-bottom));
+          flex-direction: row;
+          align-items: center;
+          padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+          border-right: 0;
+          border-top: 1px solid var(--ln);
+          box-shadow: 0 -8px 24px rgba(5,10,20,.18);
+        }
+        .brand { display: none; }
+        #nv {
+          min-width: 0;
+          flex-direction: row;
+          align-items: center;
+          justify-content: space-between;
+          gap: 3px;
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        #nv::-webkit-scrollbar { display: none; }
+        #nv a {
+          flex: 1 1 0;
+          min-width: 32px;
+          height: 44px;
+          padding: 0;
+          border-radius: 12px;
+        }
+        .side .out {
+          flex: none;
+          width: 36px;
+          height: 44px;
+          margin-left: 4px;
+          padding: 0;
+        }
+        .top {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          height: auto;
+          min-height: 58px;
+          flex-wrap: nowrap;
+          gap: 6px;
+          padding: 8px 10px;
+          background: var(--nav);
+          border-bottom: 1px solid var(--ln);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+        }
+        .bkb, .ib { width: 36px; height: 36px; }
+        #sbox { flex: 1 1 80px; min-width: 70px; max-width: none; }
+        .sbx { padding: 2px 6px; border-radius: 11px; }
+        .sbx input { min-width: 0; padding: 7px 4px; font-size: 12px; }
+        .sbx button { width: 24px; height: 24px; }
+        .sp { display: none; }
+        .tsw:not(.fx) { width: 36px; height: 36px; }
+        .usr { width: 36px; height: 36px; justify-content: center; margin: 0; padding: 2px; }
+        .usr>span { display: none; }
+        #av { width: 28px; height: 28px; }
+        main { min-width: 0; padding: 10px 12px 24px; }
+        .hd { align-items: flex-start; flex-direction: column; gap: 4px; }
+        h1.t { font-size: 21px; }
+        .hd>.fl { width: 100%; margin: 8px 0 12px; justify-content: flex-start; }
+        .g { gap: 12px; margin-bottom: 12px; }
+        .g.g3, .g.g4, .g.g5, .two, .dg { grid-template-columns: minmax(0,1fr); }
+        .dash-welcome { height: auto; padding: 6px 2px 12px; }
+        .dash-welcome h2 { font-size: 19px; line-height: 1.3; }
+        .dash-grid { grid-template-columns: minmax(0,1fr); gap: 12px; }
+        .operation-card { min-height: 310px; padding: 16px; }
+        .operation-orb { width: 132px; height: 132px; margin: 16px auto 10px; }
+        .operation-orb div { width: 92px; height: 92px; }
+        .operation-orb b { font-size: 36px; }
+        .operation-actions { margin-top: 12px; }
+        .dash-main { gap: 12px; }
+        .balance-card { height: auto; min-height: 142px; padding: 16px; }
+        .balance-layout { height: auto; grid-template-columns: minmax(0,1fr); gap: 10px; }
+        .balance-copy b { font-size: 24px; }
+        .mini-chart { height: 48px; gap: 5px; }
+        .dash-kpis { grid-template-columns: minmax(0,1fr); gap: 10px; }
+        .dash-kpis .st { min-height: 78px; }
+        .dash-bottom { grid-template-columns: minmax(0,1fr); gap: 12px; }
+        .recent-card, .overview-card { min-width: 0; padding: 14px; }
+        .rw { gap: 8px; }
+        .rw .ic { width: 34px; height: 34px; }
+        .rw b { overflow-wrap: anywhere; }
+        .rw .r2 span { font-size: 12px; }
+        .cd { min-width: 0; padding: 16px; }
+        .rf { align-items: stretch; padding: 12px; gap: 10px; }
+        .rf label { min-width: 0; flex: 1 1 120px; }
+        .rfp { width: 100%; margin-left: 0; }
+        .rfp .btn { flex: 1 1 auto; }
+        .af { flex-direction: column; }
+        .af input, .af select { width: 100%; min-width: 0; }
+        .set label:not(.glass-toggle-row) { align-items: stretch; flex-direction: column; }
+        .set input { width: 100%; }
+        .fg { grid-template-columns: minmax(0,1fr); }
+        .fg label.w { grid-column: auto; }
+        .seg { flex-direction: row; }
+        #qr { width: min(90vw,340px); }
+        #login { min-height: 100vh; min-height: 100dvh; }
+        .lf { padding: 28px 22px; }
+        .lf h1 { font-size: 30px; }
       }
       @media print {
         body, #shell { background: #fff !important; }
