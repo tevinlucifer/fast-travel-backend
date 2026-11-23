@@ -700,6 +700,85 @@
       [data-theme=light] .mini-chart i {
         background: linear-gradient(180deg,#a8b94f,#71853c);
       }
+      .cd, .st, .tile, .tw, .rf, .glass-card, .rail-card,
+      .top, .side, .bkb, .ib, .sbx, .usr, .btn, .tsw {
+        backdrop-filter: blur(24px) saturate(155%);
+        -webkit-backdrop-filter: blur(24px) saturate(155%);
+      }
+      [data-theme=dark] .cd,
+      [data-theme=dark] .st,
+      [data-theme=dark] .tile,
+      [data-theme=dark] .tw,
+      [data-theme=dark] .rf,
+      [data-theme=dark] .glass-card,
+      [data-theme=dark] .rail-card {
+        background-color: rgba(25,39,62,.66);
+        border-color: rgba(220,235,255,.14);
+        box-shadow: 0 18px 38px rgba(2,8,20,.24), inset 0 1px 0 rgba(255,255,255,.12);
+      }
+      [data-theme=dark] .operation-card {
+        background: linear-gradient(145deg, rgba(93,126,180,.23), rgba(19,31,51,.72));
+      }
+      [data-theme=dark] .balance-card {
+        background: linear-gradient(135deg, rgba(67,100,150,.58), rgba(19,31,50,.72));
+      }
+      [data-theme=dark] .side {
+        background: rgba(17,28,47,.82);
+        border-right-color: rgba(220,235,255,.12);
+      }
+      [data-theme=dark] .top {
+        background: rgba(13,22,38,.44);
+        border-bottom: 1px solid rgba(220,235,255,.1);
+      }
+      [data-theme=dark] .bkb,
+      [data-theme=dark] .ib,
+      [data-theme=dark] .sbx,
+      [data-theme=dark] .usr,
+      [data-theme=dark] .tsw {
+        background-color: rgba(46,66,98,.58);
+        border-color: rgba(220,235,255,.16);
+      }
+      [data-theme=light] .cd,
+      [data-theme=light] .st,
+      [data-theme=light] .tile,
+      [data-theme=light] .tw,
+      [data-theme=light] .rf,
+      [data-theme=light] .glass-card,
+      [data-theme=light] .rail-card {
+        background-color: rgba(218,228,241,.76);
+        border-color: rgba(255,255,255,.68);
+        box-shadow: 0 16px 32px rgba(42,59,82,.12), inset 0 1px 0 rgba(255,255,255,.72);
+      }
+      [data-theme=light] .operation-card {
+        background: linear-gradient(145deg, rgba(220,230,242,.84), rgba(202,215,232,.76));
+      }
+      [data-theme=light] .balance-card {
+        background: linear-gradient(135deg, rgba(221,232,245,.86), rgba(203,217,235,.78));
+      }
+      [data-theme=light] .side {
+        background: rgba(205,218,235,.82);
+        border-right-color: rgba(255,255,255,.7);
+        box-shadow: 8px 0 28px rgba(42,59,82,.12);
+      }
+      [data-theme=light] .top {
+        background: rgba(222,231,243,.54);
+        border-bottom: 1px solid rgba(255,255,255,.58);
+      }
+      [data-theme=light] .bkb,
+      [data-theme=light] .ib,
+      [data-theme=light] .sbx,
+      [data-theme=light] .usr,
+      [data-theme=light] .tsw {
+        background-color: rgba(218,228,241,.7);
+        border-color: rgba(255,255,255,.72);
+      }
+      .btn, .bkb, .ib, .tsw, .tile, .kp, .rw, #nv a, .side .out {
+        transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease;
+      }
+      .glass-card:hover, .cd:hover, .st:hover {
+        border-color: rgba(148,190,255,.3);
+        box-shadow: 0 22px 44px rgba(2,8,20,.2), inset 0 1px 0 rgba(255,255,255,.16);
+      }
       @media(max-width:900px) {
         .side { width: 68px; padding: 16px 8px; }
         .brand { padding: 0 0 20px; }
