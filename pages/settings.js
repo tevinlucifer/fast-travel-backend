@@ -4,12 +4,12 @@ export default function createSettingsPage(ctx) {
       const { CFG, E, head } = ctx;
       const field = (key, label, type = 'text') => `<label>${label}<input class="glass-input" data-k="${key}" type="${type}" value="${E(CFG[key] ?? '')}"${type === 'number' ? ' min="0" step="any"' : ''}></label>`;
       const area = (key, label, hint = '') => `<label style="display:flex;flex-direction:column;align-items:stretch">${label}${hint ? `<small class="sub">${hint}</small>` : ''}<textarea class="glass-input" data-k="${key}" rows="3" style="width:100%;padding:10px 12px;resize:vertical">${E(CFG[key] ?? '')}</textarea></label>`;
-      const toggle = (key, label) => `<label class="glass-toggle-row" style="justify-content:flex-start"><input data-k="${key}" type="checkbox" style="width:auto" ${CFG[key] ? 'checked' : ''}>${label}</label>`;
+      const toggle = (key, label) => `<label class="glass-toggle-row"><span>${label}</span><input class="switch-input" data-k="${key}" type="checkbox" role="switch" aria-label="${E(label)}" ${CFG[key] ? 'checked' : ''}><span class="switch-track" aria-hidden="true"></span></label>`;
       const select = (key, label, options) => `<label>${label}<select class="glass-input" data-k="${key}">${options.map(option => `<option ${CFG[key] === option ? 'selected' : ''}>${E(option)}</option>`).join('')}</select></label>`;
       const card = (title, content) => `<div class="cd glass-card"><h4>${title}</h4>${content}</div>`;
       const categories = ['Sedan', 'SUV', 'KDH', 'Hatchback'].map(category => {
         const enabled = (CFG.categories || {})[category] !== false;
-        return `<div class="row glass-row" style="align-items:center;margin:12px 0"><span>${category}</span><button class="sw glass-pill ${enabled ? 'on' : 'off'}" data-cat="${category}">${enabled ? 'Enabled' : 'Disabled'}</button></div>`;
+        return `<div class="row glass-row category-toggle-row"><span>${category}</span><button type="button" class="switch-button ${enabled ? 'on' : ''}" data-cat="${category}" role="switch" aria-checked="${enabled}" aria-label="Enable ${category} category"></button></div>`;
       }).join('');
 
       return head('Settings', 'Configure booking operations and website content', `<a class="btn o glass-btn" href="#users" style="text-decoration:none">Users and roles</a><button class="btn glass-btn" id="sv">Save changes</button>`) +
