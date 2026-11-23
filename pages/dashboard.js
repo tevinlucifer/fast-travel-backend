@@ -23,17 +23,6 @@ export default function createDashboardPage(ctx) {
       const statusClass = CFG.maintenanceMode || CFG.onlineBookings === false ? 'no' : 'ok';
 
       return `<div class="dash-ref">
-        <aside class="dash-mini rail-card">
-          <div class="rail-brand"><span>LR</span></div>
-          <div class="rail-nav">
-            <a class="on" href="#dash" title="Dashboard">${IC.dash}</a>
-            <a href="#bookings" title="Bookings">${IC.bookings}</a>
-            <a href="#fleet" title="Fleet">${IC.fleet}</a>
-            <a href="#drivers" title="Drivers">${IC.drivers}</a>
-            <a href="#reports" title="Reports">${IC.reports}</a>
-          </div>
-          <a class="rail-settings" href="#settings" title="Settings">${IC.settings}</a>
-        </aside>
         <div class="dash-content">
           <header class="dash-welcome">
             <div>
