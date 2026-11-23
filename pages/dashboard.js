@@ -19,12 +19,68 @@ export default function createDashboardPage(ctx) {
       const kpi = (icon, color, label, value, note, route) => `<a class="st kp glass-card glass-lift" href="#${route}"><span class="ic ${color}">${IC[icon]}</span><div><small>${label}</small><b>${value}</b><em>${note}</em></div></a>`;
       const legend = (color, label, value) => `<p><i style="background:${color}"></i>${label}<span>${value}</span></p>`;
       const fleetRow = (icon, color, label, value, route) => `<a class="rw glass-row" href="#${route}"><span class="ic ${color}">${IC[icon]}</span><div><b>${label}</b></div><div class="r2"><span>${value}</span></div></a>`;
+      const bookingStatus = CFG.maintenanceMode ? 'Maintenance mode' : CFG.onlineBookings === false ? 'Bookings paused' : 'Accepting bookings';
+      const statusClass = CFG.maintenanceMode || CFG.onlineBookings === false ? 'no' : 'ok';
 
-      return `<div class="cd glass-card"><div class="row"><h4>Website booking status</h4>${bd(CFG.maintenanceMode ? 'Maintenance mode' : CFG.onlineBookings === false ? 'Bookings paused' : 'Accepting bookings', CFG.maintenanceMode || CFG.onlineBookings === false ? 'no' : 'ok')}</div><p>Minimum notice ${E(CFG.minNotice ?? 0)}h · Maximum trip ${E(CFG.maxDuration ?? 0)} days · Passenger limit ${E(CFG.maxPassengers ?? 0)} · No-show grace ${E(CFG.grace ?? 0)} min</p>${noShows ? `<p>${noShows} booking${noShows == 1 ? '' : 's'} marked no-show.</p>` : ''}</div><div class="hero glass-hero"><svg class="hv" viewBox="0 0 300 130" preserveAspectRatio="none"><path d="M0 130V70l50-25 40 18 60-40 50 30 50-20 50 25v72z" fill="#fff" opacity=".16"/><path d="M0 130v-30l70-20 70 15 80-25 80 20v40z" fill="#fff" opacity=".26"/></svg><h2>Good ${hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}${name ? ', ' + E(name) : ''}</h2><p>${n ? `${n} new request${n > 1 ? 's are' : ' is'} waiting for a decision.` : 'No requests are waiting. You are all caught up.'}</p></div>
-<div class="g g4">${kpi('inbox', 'b', 'New requests', n, 'Waiting for a decision', 'new')}${kpi('check', 'g', 'Accepted trips', accepted.length, 'Confirmed bookings', 'accepted')}${kpi('cash', 'p', 'Revenue', LKR(revenue), 'From accepted bookings', 'analytics')}${kpi('pct', 'o', 'Acceptance rate', rate + '%', 'Accepted vs rejected', 'analytics')}</div>
-<div class="dg"><div class="cd glass-card"><div class="ch"><h4>Recent requests</h4><a href="#bookings">View all</a></div>${recent.map(booking => `<a class="rw glass-row" href="#booking/${E(booking.id)}"><span class="ic b">${IC.fleet}</span><div><b>${E(booking.pickup)} to${E(booking.dropoff)}</b><small>${E(booking.name)} ·${when(booking)}</small></div><div class="r2"><span>${LKR(booking.fare)}</span>${bd(booking.status, booking.status == 'Accepted' || booking.status == 'Completed' ? 'ok' : ['Rejected', 'Cancelled'].includes(booking.status) ? 'no' : '')}</div></a>`).join('') || '<p class="sub">No bookings yet. Requests from the website will appear here.</p>'}</div>
-<div><div class="cd glass-card"><div class="ch"><h4>Booking overview</h4></div><div class="ov"><div class="dn" style="background:conic-gradient(#f59e0b 0 ${newPercent}%,#10b981 ${newPercent}% ${acceptedPercent}%,#ef4444 ${acceptedPercent}% ${rejectedPercent}%,rgba(148,163,184,.45) ${rejectedPercent}% 100%)"><div><b>${total}</b><small>Total</small></div></div><div class="lg">${legend('#f59e0b', 'New', n)}${legend('#10b981', 'Accepted', accepted.length)}${legend('#ef4444', 'Rejected', rejected)}${legend('rgba(148,163,184,.75)', 'Other', total - n - accepted.length - rejected)}</div></div></div>
-<div class="cd glass-card"><div class="ch"><h4>Fleet and team</h4></div>${fleetRow('fleet', 'b', 'Vehicles', FLEET.length, 'fleet')}${fleetRow('drivers', 'g', 'Drivers available', availableDrivers + ' of ' + DR.length, 'drivers')}${fleetRow('users', 'p', 'User accounts', US.length, 'users')}</div></div></div>`;
+      return `<div class="dash-ref">
+        <aside class="dash-mini rail-card">
+          <div class="rail-brand"><span>LR</span></div>
+          <div class="rail-nav">
+            <a class="on" href="#dash" title="Dashboard">${IC.dash}</a>
+            <a href="#bookings" title="Bookings">${IC.bookings}</a>
+            <a href="#fleet" title="Fleet">${IC.fleet}</a>
+            <a href="#drivers" title="Drivers">${IC.drivers}</a>
+            <a href="#reports" title="Reports">${IC.reports}</a>
+          </div>
+          <a class="rail-settings" href="#settings" title="Settings">${IC.settings}</a>
+        </aside>
+        <div class="dash-content">
+          <header class="dash-welcome">
+            <div>
+              <span class="dash-eyebrow">Back office overview</span>
+              <h2>Good ${hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}${name ? ', ' + E(name) : ''}</h2>
+            </div>
+            <div class="dash-status">${bd(bookingStatus, statusClass)}</div>
+          </header>
+          <div class="dash-grid">
+            <section class="operation-card glass-card">
+              <div class="ch"><div><small>Operations</small><h4>Website bookings</h4></div><span class="operation-more">•••</span></div>
+              <div class="operation-orb"><div><b>${n}</b><span>New request${n == 1 ? '' : 's'}</span></div></div>
+              <p>${n ? 'Waiting for a decision' : 'No requests waiting'}</p>
+              <div class="operation-actions">
+                <a href="#new" class="operation-action">Review</a>
+                <a href="#bookings" class="operation-action secondary">Details</a>
+              </div>
+            </section>
+            <div class="dash-main">
+              <section class="balance-card glass-card">
+                <div class="ch"><div><small>Revenue balance</small><h4>Accepted bookings</h4></div><span class="growth-pill">+${rate}%</span></div>
+                <div class="balance-layout">
+                  <div class="balance-copy"><b>${LKR(revenue)}</b><span>Your confirmed revenue</span></div>
+                  <div class="mini-chart" aria-label="Revenue trend">${[38,52,44,68,58,76,61,82,72,88,64,79].map(v => `<i style="height:${v}%"></i>`).join('')}</div>
+                </div>
+              </section>
+              <div class="dash-kpis">
+                ${kpi('inbox', 'b', 'New requests', n, 'Waiting', 'new')}
+                ${kpi('check', 'g', 'Accepted', accepted.length, 'Confirmed', 'accepted')}
+                ${kpi('pct', 'o', 'Acceptance', rate + '%', 'Success rate', 'analytics')}
+              </div>
+              <div class="dash-bottom">
+                <section class="recent-card glass-card">
+                  <div class="ch"><div><small>Most recent</small><h4>Booking activity</h4></div><a href="#bookings">View all</a></div>
+                  ${recent.map(booking => `<a class="rw glass-row" href="#booking/${E(booking.id)}"><span class="ic b">${IC.fleet}</span><div><b>${E(booking.pickup)} to ${E(booking.dropoff)}</b><small>${E(booking.name)} · ${when(booking)}</small></div><div class="r2"><span>${LKR(booking.fare)}</span>${bd(booking.status, booking.status == 'Accepted' || booking.status == 'Completed' ? 'ok' : ['Rejected', 'Cancelled'].includes(booking.status) ? 'no' : '')}</div></a>`).join('') || '<p class="sub">No bookings yet.</p>'}
+                </section>
+                <section class="overview-card glass-card">
+                  <div class="ch"><div><small>Live overview</small><h4>Fleet & team</h4></div></div>
+                  ${fleetRow('fleet', 'b', 'Vehicles', FLEET.length, 'fleet')}
+                  ${fleetRow('drivers', 'g', 'Drivers available', availableDrivers + ' of ' + DR.length, 'drivers')}
+                  ${fleetRow('users', 'p', 'User accounts', US.length, 'users')}
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
     }
   };
 }
