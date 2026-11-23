@@ -37,6 +37,70 @@ const otpStore = new Map();
 
 // In-memory System Settings store
 let settingsStore = {
+  onlineBookings: true,
+  maintenanceMode: false,
+  minNotice: 3,
+  maxDuration: 14,
+  buffer: 30,
+  grace: 15,
+  maxPassengers: 50,
+  closedDates: '',
+  airportSameDayHours: 24,
+  cancelFee48: 0,
+  cancelFee24: 25,
+  cancelFeeUnder24: 50,
+  baseFare: 0,
+  minimumFare: 0,
+  rateSedan: 120,
+  rateKDH: 280,
+  rateSUV: 0,
+  rateHatch: 95,
+  airportSurcharge: 0,
+  nightSurcharge: 0,
+  waitingCharge: 0,
+  tollCharges: 'At cost',
+  parkingCharges: 'At cost',
+  bookingFee: 0,
+  seasonalPricing: '',
+  currency: 'LKR',
+  taxPercent: 0,
+  companyName: 'Lanka Rides',
+  logoUrl: '',
+  heroTitle: 'Discover Sri Lanka, one ride at a time.',
+  heroDescription: 'From airport pickups to island tours, explore Sri Lanka with a trusted local driver.',
+  contactPhone: '+94 11 234 5678',
+  whatsappNumber: '+94 77 123 4567',
+  bookingEmail: 'bookings@lankanrides.lk',
+  notificationEmail: '',
+  workingHours: 'Daily: 6am – 10pm',
+  physicalAddress: '',
+  footerText: '',
+  socialLinks: '',
+  seoTitle: 'Lanka Rides',
+  seoDescription: '',
+  homepageVehicles: 'Sedan,SUV,Hatchback,KDH',
+  homepageDestinations: 'Ella,Kandy,Galle,Mirissa,Arugam Bay',
+  tours: '',
+  promotionalBanner: '',
+  bookingConfirmation: 'Manual',
+  requiredFields: 'pickup,dropoff,date,name,email,phone',
+  flightRequired: false,
+  nationalityRequired: false,
+  passengerFieldRequired: true,
+  depositPercent: 0,
+  paymentMethods: 'Cash,Card,Online transfer',
+  acceptedEmailTemplate: '',
+  rejectedEmailTemplate: '',
+  whatsappTemplate: '',
+  statusNotifications: true,
+  serviceAreas: '',
+  unavailableLocations: '',
+  vehicleCounts: '',
+  destinationAvailability: '',
+  driverAvailabilityRules: '',
+  vehicleOccupancyLimits: '',
+  multiDaySettings: '',
+  customRequestHandling: true,
   brightness: 92,
   nightLight: false,
   adaptiveBrightness: true,
@@ -133,7 +197,7 @@ app.post('/api/verify-otp', async (req, res) => {
 });
 
 // API Endpoint: Get Current System Settings
-app.get('/api/settings', (req, res) => {
+app.get('/api/settings', requireStaff, (req, res) => {
   try {
     return res.status(200).json({ success: true, settings: settingsStore });
   } catch (err) {
@@ -145,7 +209,58 @@ app.get('/api/settings', (req, res) => {
 // API Endpoint: Update System Settings
 app.post('/api/settings', requireStaff, (req, res) => {
   try {
-    const newSettings = req.body;
+    const newSettings = req.body || {};
+    const booleanKeys = [
+      'onlineBookings', 'maintenanceMode', 'flightRequired', 'nationalityRequired',
+      'passengerFieldRequired', 'statusNotifications', 'customRequestHandling',
+    ];
+    for (const key of booleanKeys) {
+      if (key in newSettings) {
+        newSettings[key] = newSettings[key] === true || String(newSettings[key]).toLowerCase() === 'true';
+      }
+    }
+    const numericKeys = [
+      'minNotice', 'maxDuration', 'buffer', 'grace', 'maxPassengers', 'airportSameDayHours',
+      'cancelFee48', 'cancelFee24', 'cancelFeeUnder24', 'baseFare', 'minimumFare',
+      'rateSedan', 'rateKDH', 'rateSUV', 'rateHatch', 'airportSurcharge', 'nightSurcharge',
+      'waitingCharge', 'bookingFee', 'taxPercent', 'depositPercent',
+    ];
+    for (const key of numericKeys) {
+      if (key in newSettings) {
+        const value = Number(newSettings[key]);
+        if (!Number.isFinite(value) || value < 0) {
+          return res.status(400).json({ success: false, message: `${key} must be a non-negative number.` });
+        }
+        newSettings[key] = value;
+      }
+    }
+    for (const key of ['cancelFee48', 'cancelFee24', 'cancelFeeUnder24', 'depositPercent']) {
+      if (key in newSettings && newSettings[key] > 100) {
+        return res.status(400).json({ success: false, message: `${key} cannot exceed 100%.` });
+      }
+    }
+    if ('maxPassengers' in newSettings && (newSettings.maxPassengers < 1 || newSettings.maxPassengers > 60)) {
+      return res.status(400).json({ success: false, message: 'maxPassengers must be between 1 and 60.' });
+    }
+    for (const key of ['socialLinks', 'seasonalPricing', 'tours', 'vehicleCounts', 'destinationAvailability', 'vehicleOccupancyLimits']) {
+      if (typeof newSettings[key] === 'string' && newSettings[key].trim()) {
+        try {
+          const parsed = JSON.parse(newSettings[key]);
+          if (['socialLinks', 'vehicleCounts', 'destinationAvailability', 'vehicleOccupancyLimits'].includes(key) &&
+              (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))) {
+            return res.status(400).json({ success: false, message: `${key} must be a JSON object.` });
+          }
+          if (key === 'tours' && !Array.isArray(parsed)) {
+            return res.status(400).json({ success: false, message: 'tours must be a JSON array.' });
+          }
+        } catch {
+          return res.status(400).json({ success: false, message: `${key} must contain valid JSON.` });
+        }
+      }
+    }
+    if (newSettings.bookingConfirmation !== undefined && !['Manual', 'Automatic'].includes(newSettings.bookingConfirmation)) {
+      return res.status(400).json({ success: false, message: 'Invalid booking confirmation mode.' });
+    }
     settingsStore = { ...settingsStore, ...newSettings };
     db.settings = settingsStore; saveDb();
     console.log('[SETTINGS DEBUG] Updated settings:', settingsStore);
@@ -260,6 +375,16 @@ async function requireStaff(req, res, next) {
 }
 
 const clean = (v, max = 300) => String(v ?? '').trim().slice(0, max);
+const isISODate = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+};
+const settingObject = (key) => {
+  const value = settingsStore[key];
+  if (!value) return {};
+  return typeof value === 'string' ? JSON.parse(value) : value;
+};
 const PAYMENT_TYPES = ['Cash', 'Card', 'Online transfer'];
 
 // NOTIFY-START
@@ -316,6 +441,11 @@ async function sendSms(to, body) {
 // Builds the subject, plain text, HTML and SMS for a customer message
 function buildMessage(b, kind, testFor) {
   const first = (b.name || 'there').split(' ')[0];
+  const company = {
+    name: settingsStore.companyName || COMPANY.name,
+    email: settingsStore.bookingEmail || COMPANY.email,
+    phone: settingsStore.contactPhone || COMPANY.phone,
+  };
   const accepted = kind === 'accepted';
   const rows = [
     ['Booking reference', b.id],
@@ -327,18 +457,18 @@ function buildMessage(b, kind, testFor) {
   ];
   if (accepted && b.vehicle) rows.push(['Vehicle', b.vehicle]);
   if (accepted && b.driver) rows.push(['Driver', b.driver]);
-  if (accepted && Number(b.fare) > 0) rows.push(['Fare', 'LKR ' + Number(b.fare).toLocaleString('en-US')]);
+  if (accepted && Number(b.fare) > 0) rows.push(['Fare', (settingsStore.currency || 'LKR') + ' ' + Number(b.fare).toLocaleString('en-US')]);
 
   const badge = accepted ? 'BOOKING CONFIRMED' : 'BOOKING UPDATE';
   const color = accepted ? ['#d9f4de', '#1c7a2f'] : ['#fde0e0', '#b3262b'];
   const heading = accepted ? 'Your booking has been confirmed' : 'We could not accept your booking';
   const paras = accepted
     ? [
-        'Thank you for choosing ' + COMPANY.name + '. We are pleased to confirm that your booking has been accepted.',
+        'Thank you for choosing ' + company.name + '. We are pleased to confirm that your booking has been accepted.',
         'Our team will contact you soon to confirm the final details of your trip. If anything changes before then, please reply to this email or call us.',
       ]
     : [
-        'Thank you for your interest in ' + COMPANY.name + '. Unfortunately we are unable to accept this booking' + (b.reason ? ' (' + b.reason + ')' : '') + '.',
+        'Thank you for your interest in ' + company.name + '. Unfortunately we are unable to accept this booking' + (b.reason ? ' (' + b.reason + ')' : '') + '.',
         'We apologise for the inconvenience. You are welcome to submit a new request for another date or vehicle, or contact us and we will gladly help.',
       ];
 
@@ -353,7 +483,7 @@ function buildMessage(b, kind, testFor) {
   const html = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f1f5fb">
 <div style="padding:24px 12px;background:#f1f5fb;font-family:Arial,Helvetica,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden">
-<tr><td style="background:#0b1f4d;padding:22px 28px"><span style="color:#ffffff;font-size:21px;font-weight:700;letter-spacing:.02em">${esc(COMPANY.name)}</span></td></tr>
+<tr><td style="background:#0b1f4d;padding:22px 28px"><span style="color:#ffffff;font-size:21px;font-weight:700;letter-spacing:.02em">${esc(company.name)}</span></td></tr>
 ${testNote}
 <tr><td style="padding:30px 28px 8px">
 <span style="display:inline-block;background:${color[0]};color:${color[1]};border-radius:20px;padding:5px 13px;font-size:12px;font-weight:700;letter-spacing:.05em">${badge}</span>
@@ -364,26 +494,32 @@ ${paras.map((p) => `<p style="margin:0 0 12px;font-size:15px;line-height:1.6;col
 <tr><td style="padding:8px 28px 6px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #0b1f4d">${rowHtml}</table></td></tr>
 <tr><td style="padding:22px 28px 8px"><div style="background:#f1f5fb;border-radius:10px;padding:16px 18px;font-size:14px;line-height:1.7;color:#2b3652">
 <b style="color:#0b1f4d">Need help?</b><br>
-Email: <a href="mailto:${esc(COMPANY.email)}" style="color:#1565e0;text-decoration:none">${esc(COMPANY.email)}</a><br>
-Phone: <a href="tel:${esc(COMPANY.phone)}" style="color:#1565e0;text-decoration:none">${esc(COMPANY.phone)}</a>
+Email: <a href="mailto:${esc(company.email)}" style="color:#1565e0;text-decoration:none">${esc(company.email)}</a><br>
+Phone: <a href="tel:${esc(company.phone)}" style="color:#1565e0;text-decoration:none">${esc(company.phone)}</a>
 </div></td></tr>
-<tr><td style="padding:22px 28px 28px;font-size:12px;line-height:1.6;color:#8a94ab">Kind regards,<br><b style="color:#0b1f4d">The ${esc(COMPANY.name)} team</b><br><br>This is an automated message about booking ${esc(b.id)}.</td></tr>
+<tr><td style="padding:22px 28px 28px;font-size:12px;line-height:1.6;color:#8a94ab">Kind regards,<br><b style="color:#0b1f4d">The ${esc(company.name)} team</b><br><br>This is an automated message about booking ${esc(b.id)}.</td></tr>
 </table></div></body></html>`;
 
   const text = [
     `Dear ${first},`, '', ...paras, '',
     ...rows.map(([k, v]) => `${k}: ${v}`), '',
-    `Need help? Email ${COMPANY.email} or call ${COMPANY.phone}.`, '',
-    `Kind regards,`, `The ${COMPANY.name} team`,
+    `Need help? Email ${company.email} or call ${company.phone}.`, '',
+    `Kind regards,`, `The ${company.name} team`,
   ].join('\n');
 
   const sms = accepted
-    ? `${COMPANY.name}: Hi ${first}, your booking ${b.id} (${b.pickup} to ${b.dropoff}, ${b.date} ${b.time}) is confirmed. We will contact you soon. Help: ${COMPANY.phone}`
-    : `${COMPANY.name}: Hi ${first}, sorry, we could not accept booking ${b.id}. Please contact ${COMPANY.phone} for help.`;
+    ? `${company.name}: Hi ${first}, your booking ${b.id} (${b.pickup} to ${b.dropoff}, ${b.date} ${b.time}) is confirmed. We will contact you soon. Help: ${company.phone}`
+    : `${company.name}: Hi ${first}, sorry, we could not accept booking ${b.id}. Please contact ${company.phone} for help.`;
+  const values = { ...b, name: b.name || '', firstName: first };
+  const renderTemplate = (template) => String(template || '').replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => String(values[key] ?? ''));
+  const customText = renderTemplate(accepted ? settingsStore.acceptedEmailTemplate : settingsStore.rejectedEmailTemplate);
+  const customSms = renderTemplate(settingsStore.whatsappTemplate);
 
   return {
-    subject: (testFor ? '[TEST] ' : '') + (accepted ? `Booking confirmed - ${b.id} | ${COMPANY.name}` : `Update on your booking ${b.id} | ${COMPANY.name}`),
-    html, text, sms,
+    subject: (testFor ? '[TEST] ' : '') + (accepted ? `Booking confirmed - ${b.id} | ${company.name}` : `Update on your booking ${b.id} | ${company.name}`),
+    html: customText ? `<div style="font-family:Arial,sans-serif;white-space:pre-wrap">${esc(customText)}</div>` : html,
+    text: customText || text,
+    sms: customSms || sms,
   };
 }
 
@@ -393,10 +529,15 @@ async function notifyCustomer(b, kind) {
   const toPhone = NOTIFY_TEST_MODE ? TEST_PHONE : toE164(b.phone);
   const testFor = NOTIFY_TEST_MODE ? `${b.name} <${b.email}> / ${b.phone}` : '';
   const m = buildMessage(b, kind, testFor);
+  const company = {
+    name: settingsStore.companyName || COMPANY.name,
+    email: settingsStore.bookingEmail || COMPANY.email,
+  };
 
+  if (settingsStore.statusNotifications === false) return;
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     try {
-      await transporter.sendMail({ from: `"${COMPANY.name}" <${process.env.EMAIL_USER}>`, to: toEmail, replyTo: COMPANY.email, subject: m.subject, text: m.text, html: m.html });
+      await transporter.sendMail({ from: `"${company.name}" <${process.env.EMAIL_USER}>`, to: toEmail, replyTo: company.email, subject: m.subject, text: m.text, html: m.html });
       console.log(`[NOTIFY] ${kind} email sent to ${toEmail} for ${b.id}`);
     } catch (e) { console.error('[NOTIFY] Email failed:', e.message); }
   } else {
@@ -430,10 +571,24 @@ app.post('/api/bookings', (req, res) => {
 
     const b = req.body || {};
     if (b.website) return res.status(200).json({ success: true }); // honeypot for bots
+    if (settingsStore.maintenanceMode) {
+      return res.status(503).json({ success: false, message: 'Online bookings are temporarily unavailable for maintenance.' });
+    }
+    if (settingsStore.onlineBookings === false) {
+      return res.status(403).json({ success: false, message: 'Online bookings are currently disabled.' });
+    }
+    const distanceKm = b.distanceKm === undefined || b.distanceKm === '' ? '' : Number(b.distanceKm);
+    const waitingHours = b.waitingHours === undefined || b.waitingHours === '' ? 0 : Number(b.waitingHours);
+    if (distanceKm !== '' && (!Number.isFinite(distanceKm) || distanceKm < 0)) {
+      return res.status(400).json({ success: false, message: 'Distance must be a non-negative number.' });
+    }
+    if (!Number.isFinite(waitingHours) || waitingHours < 0) {
+      return res.status(400).json({ success: false, message: 'Waiting hours must be a non-negative number.' });
+    }
 
     const booking = {
       id: 'BK-' + Date.now().toString(36).toUpperCase(),
-      status: 'New',
+      status: settingsStore.bookingConfirmation === 'Automatic' ? 'Accepted' : 'New',
       createdAt: new Date().toISOString(),
       pickup: clean(b.pickup),
       dropoff: clean(b.dropoff),
@@ -443,13 +598,15 @@ app.post('/api/bookings', (req, res) => {
       email: clean(b.email, 150).toLowerCase(),
       phone: clean(b.phone, 40),
       nationality: clean(b.nationality, 60),
-      passengers: Math.min(Math.max(parseInt(b.passengers, 10) || 1, 1), 50),
+      passengers: Math.min(Math.max(parseInt(b.passengers, 10) || 1, 1), 60),
       requests: clean(b.requests, 1000),
       vehicle: clean(b.vehicle, 60),
       type: vehicleType(b.type),
       service: clean(b.service || b.type, 80),
       flight: clean(b.flight, 30),
       endDate: clean(b.endDate, 20),
+      distanceKm,
+      waitingHours,
       fare: Math.max(0, Number(b.fare) || 0),
       driver: '',
       driverId: '',
@@ -457,7 +614,12 @@ app.post('/api/bookings', (req, res) => {
       reason: '',
     };
 
-    const missing = ['pickup', 'dropoff', 'date', 'name', 'email', 'phone']
+    const requiredFields = String(settingsStore.requiredFields || 'pickup,dropoff,date,name,email,phone')
+      .split(',').map(field => field.trim()).filter(Boolean);
+    if (settingsStore.flightRequired && !booking.flight) requiredFields.push('flight');
+    if (settingsStore.nationalityRequired && !booking.nationality) requiredFields.push('nationality');
+    if (settingsStore.passengerFieldRequired && !Object.prototype.hasOwnProperty.call(b, 'passengers')) requiredFields.push('passengers');
+    const missing = [...new Set(requiredFields)]
       .filter(k => !booking[k]);
     if (missing.length) {
       return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
@@ -465,19 +627,98 @@ app.post('/api/bookings', (req, res) => {
     if (booking.type && settingsStore.categories?.[booking.type] === false) {
       return res.status(400).json({ success: false, message: `Sorry, ${booking.type} is currently unavailable.` });
     }
+    if (booking.passengers > Number(settingsStore.maxPassengers || 50)) {
+      return res.status(400).json({ success: false, message: `Maximum passengers per booking is ${settingsStore.maxPassengers}.` });
+    }
+    if (booking.type) {
+      const occupancyLimits = settingObject('vehicleOccupancyLimits');
+      const categoryLimit = Number(occupancyLimits[booking.type]);
+      if (Object.prototype.hasOwnProperty.call(occupancyLimits, booking.type) &&
+          Number.isFinite(categoryLimit) && booking.passengers > categoryLimit) {
+        return res.status(400).json({ success: false, message: `${booking.type} supports up to ${categoryLimit} passengers.` });
+      }
+    }
+    if (!settingsStore.customRequestHandling && booking.requests) {
+      return res.status(400).json({ success: false, message: 'Custom trip requests are not currently accepted.' });
+    }
+    const unavailableLocations = String(settingsStore.unavailableLocations || '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean);
+    const tripLocations = `${booking.pickup} ${booking.dropoff}`.toLowerCase();
+    const unavailableLocation = unavailableLocations.find(location => tripLocations.includes(location));
+    if (unavailableLocation) {
+      return res.status(400).json({ success: false, message: `Bookings involving ${unavailableLocation} are unavailable.` });
+    }
+    const serviceAreas = String(settingsStore.serviceAreas || '').split(',').map(value => value.trim().toLowerCase()).filter(Boolean);
+    if (serviceAreas.length && ![booking.pickup, booking.dropoff].every(location => serviceAreas.some(area => location.toLowerCase().includes(area)))) {
+      return res.status(400).json({ success: false, message: 'Pickup and drop-off must be within configured service areas.' });
+    }
+    if (booking.dropoff) {
+      const destinationAvailability = settingObject('destinationAvailability');
+      const unavailableDestination = Object.entries(destinationAvailability).find(([name, enabled]) =>
+        name.toLowerCase() === booking.dropoff.toLowerCase() && enabled === false);
+      if (unavailableDestination) {
+        return res.status(400).json({ success: false, message: `${booking.dropoff} is not currently available.` });
+      }
+    }
+    if (booking.date) {
+      if (!isISODate(booking.date) || (booking.time && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(booking.time))) {
+        return res.status(400).json({ success: false, message: 'Invalid pickup date or time.' });
+      }
+      const pickupDate = new Date(`${booking.date}T${booking.time || '00:00'}:00+05:30`);
+      if (Number.isNaN(pickupDate.getTime())) {
+        return res.status(400).json({ success: false, message: 'Invalid pickup date or time.' });
+      }
+      const hoursUntilPickup = (pickupDate.getTime() - Date.now()) / 3600000;
+      if (hoursUntilPickup < Number(settingsStore.minNotice || 0)) {
+        return res.status(400).json({ success: false, message: `Bookings require at least ${settingsStore.minNotice} hours' notice.` });
+      }
+      const endDateTime = booking.endDate ? Date.parse(`${booking.endDate}T00:00:00+05:30`) : NaN;
+      if (booking.endDate && (!isISODate(booking.endDate) || Number.isNaN(endDateTime))) {
+        return res.status(400).json({ success: false, message: 'Invalid trip end date.' });
+      }
+      const tripDays = booking.endDate
+        ? (endDateTime - Date.parse(`${booking.date}T00:00:00+05:30`)) / 86400000
+        : 0;
+      const maxTripDays = settingsStore.maxDuration === undefined ? 14 : Number(settingsStore.maxDuration);
+      if (tripDays < 0 || tripDays > maxTripDays) {
+        return res.status(400).json({ success: false, message: `Trip duration cannot exceed ${settingsStore.maxDuration} days.` });
+      }
+      const closedDates = String(settingsStore.closedDates || '').split(',').map(date => date.trim()).filter(Boolean);
+      for (const date of closedDates) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date) && date >= booking.date && date <= (booking.endDate || booking.date)) {
+          return res.status(400).json({ success: false, message: `Bookings are unavailable on ${date}.` });
+        }
+      }
+      if (/airport|\bcmb\b/i.test(`${booking.pickup} ${booking.dropoff}`) &&
+          hoursUntilPickup < Number(settingsStore.airportSameDayHours || 0)) {
+        return res.status(400).json({ success: false, message: `Airport transfers require ${settingsStore.airportSameDayHours} hours' notice.` });
+      }
+    }
     if (!/^\S+@\S+\.\S+$/.test(booking.email)) {
       return res.status(400).json({ success: false, message: 'Invalid email address.' });
+    }
+    if (booking.status === 'Accepted' && booking.type) {
+      const vehicleCounts = settingObject('vehicleCounts');
+      const categoryLimit = Number(vehicleCounts[booking.type]);
+      const activeCount = bookingsStore.filter(existing =>
+        existing.status === 'Accepted' && existing.type === booking.type && existing.date === booking.date).length;
+      if (Number.isFinite(categoryLimit) && categoryLimit >= 0 && activeCount >= categoryLimit) {
+        return res.status(409).json({ success: false, message: `No ${booking.type} vehicles are available for this date.` });
+      }
     }
 
     bookingsStore.unshift(booking);
     saveDb();
     console.log('[BOOKING] New booking', booking.id, booking.name);
 
+    if (booking.status === 'Accepted' && settingsStore.statusNotifications !== false) {
+      notifyCustomer(booking, 'accepted').catch(e => console.error('[NOTIFY] failed:', e.message));
+    }
+
     // Optional: notify the owner by email
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       transporter.sendMail({
         from: `"TD System" <${process.env.EMAIL_USER}>`,
-        to: process.env.BOOKING_NOTIFY_TO || process.env.EMAIL_USER,
+        to: settingsStore.notificationEmail || process.env.BOOKING_NOTIFY_TO || process.env.EMAIL_USER,
         subject: `New booking ${booking.id} - ${booking.name}`,
         text: Object.entries(booking).map(([k, v]) => `${k}: ${v}`).join('\n'),
       }).catch(e => console.error('Booking email failed:', e.message));
@@ -498,30 +739,144 @@ app.get('/api/bookings', requireStaff, (req, res) => {
 app.patch('/api/bookings/:id', requireStaff, (req, res) => {
   const b = bookingsStore.find(x => x.id === req.params.id);
   if (!b) return res.status(404).json({ success: false, message: 'Booking not found.' });
-  const { status, driver, vehicle, reason, payment, driverId, fare } = req.body || {};
+  const { status, driver, vehicle, reason, payment, driverId, fare, distanceKm, waitingHours } = req.body || {};
   const prevStatus = b.status;
-  if (payment !== undefined && payment !== '' && !PAYMENT_TYPES.includes(payment)) {
+  const paymentTypes = String(settingsStore.paymentMethods || PAYMENT_TYPES.join(',')).split(',').map(type => type.trim()).filter(Boolean);
+  if (payment !== undefined && payment !== '' && !paymentTypes.includes(payment)) {
     return res.status(400).json({ success: false, message: 'Invalid payment type.' });
   }
   if (status !== undefined) {
-    if (!['New', 'Accepted', 'Rejected', 'Completed', 'Cancelled'].includes(status)) {
+    if (!['New', 'Accepted', 'Rejected', 'Completed', 'Cancelled', 'No-show'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status.' });
     }
-    b.status = status;
+    if (status === 'No-show') {
+      if (prevStatus !== 'Accepted' || !isISODate(b.date)) {
+        return res.status(400).json({ success: false, message: 'Only accepted bookings can be marked as a no-show.' });
+      }
+      if (b.time && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(b.time)) {
+        return res.status(400).json({ success: false, message: 'The booking has an invalid pickup time.' });
+      }
+      const start = new Date(`${b.date}T${b.time || '00:00'}:00+05:30`).getTime();
+      if (Number.isNaN(start)) return res.status(400).json({ success: false, message: 'The booking has an invalid pickup date or time.' });
+      const graceEndsAt = start + Number(settingsStore.grace || 0) * 60000;
+      if (Date.now() < graceEndsAt) {
+        return res.status(400).json({ success: false, message: `Wait until ${settingsStore.grace} minutes after pickup before marking a no-show.` });
+      }
+    }
   }
+  const newAcceptance = status === 'Accepted' && prevStatus !== 'Accepted';
+  const assignmentChanged = prevStatus === 'Accepted' && (driver !== undefined || vehicle !== undefined || driverId !== undefined);
+  if (newAcceptance || assignmentChanged) {
+    const selectedDriverId = driverId !== undefined ? clean(driverId, 40) : b.driverId;
+    const selectedDriverName = driver !== undefined ? clean(driver, 60) : b.driver;
+    const selectedDriver = selectedDriverId
+      ? db.drivers.find(item => item.id === selectedDriverId)
+      : db.drivers.find(item => item.name === selectedDriverName);
+    if ((selectedDriverId || selectedDriverName) && !selectedDriver) {
+      return res.status(400).json({ success: false, message: 'The selected driver was not found.' });
+    }
+    const alreadyAssignedDriver = selectedDriver && (selectedDriver.id === b.driverId || (!b.driverId && selectedDriver.name === b.driver));
+    if (selectedDriver && selectedDriver.status !== 'Available' && !alreadyAssignedDriver) {
+      return res.status(409).json({ success: false, message: 'The selected driver is not available.' });
+    }
+    const selectedVehicle = vehicle !== undefined ? clean(vehicle, 60) : b.vehicle;
+    const selectedVehicleRecord = selectedVehicle
+      ? db.fleet.find(item => `${item.name} · ${item.plate}` === selectedVehicle || item.id === selectedVehicle)
+      : null;
+    if (selectedVehicle && !selectedVehicleRecord) {
+      return res.status(400).json({ success: false, message: 'The selected vehicle was not found.' });
+    }
+    if (selectedVehicleRecord && b.type && selectedVehicleRecord.type !== b.type) {
+      return res.status(409).json({ success: false, message: 'The selected vehicle does not match the requested category.' });
+    }
+    if (selectedVehicleRecord && Number(b.passengers) > Number(selectedVehicleRecord.seats || 0)) {
+      return res.status(409).json({ success: false, message: `The selected vehicle seats up to ${selectedVehicleRecord.seats} passengers.` });
+    }
+    const selectedType = b.type;
+    if (selectedType) {
+      const occupancyLimits = settingObject('vehicleOccupancyLimits');
+      const limit = Number(occupancyLimits[selectedType]);
+      if (Object.prototype.hasOwnProperty.call(occupancyLimits, selectedType) &&
+          Number.isFinite(limit) && Number(b.passengers) > limit) {
+        return res.status(409).json({ success: false, message: `${selectedType} supports up to ${limit} passengers.` });
+      }
+      const vehicleCounts = settingObject('vehicleCounts');
+      const categoryLimit = Number(vehicleCounts[selectedType]);
+      const activeCount = bookingsStore.filter(existing =>
+        existing.id !== b.id && existing.status === 'Accepted' && existing.type === selectedType && existing.date === b.date).length;
+      if (Number.isFinite(categoryLimit) && categoryLimit >= 0 && activeCount >= categoryLimit) {
+        return res.status(409).json({ success: false, message: `No ${selectedType} vehicles are available for this date.` });
+      }
+    }
+    const bufferMs = Number(settingsStore.buffer || 0) * 60000;
+    const candidateStart = new Date(`${b.date}T${b.time || '00:00'}:00+05:30`).getTime();
+    const candidateDriver = selectedDriver?.id || selectedDriverId || driver || b.driver;
+    const conflicts = bookingsStore.find(existing => {
+      if (existing.id === b.id || existing.status !== 'Accepted' || existing.date !== b.date) return false;
+      const sharesDriver = candidateDriver && (existing.driverId === candidateDriver || existing.driver === candidateDriver);
+      const sharesVehicle = selectedVehicle && existing.vehicle === selectedVehicle;
+      if (!sharesDriver && !sharesVehicle) return false;
+      const otherStart = new Date(`${existing.date}T${existing.time || '00:00'}:00+05:30`).getTime();
+      return Number.isFinite(candidateStart) && Number.isFinite(otherStart) && Math.abs(candidateStart - otherStart) < bufferMs;
+    });
+    if (conflicts) return res.status(409).json({ success: false, message: `Allow at least ${settingsStore.buffer} minutes between trips assigned to the same driver or vehicle.` });
+  }
+  const parsedDistance = distanceKm === undefined || distanceKm === '' ? undefined : Number(distanceKm);
+  const parsedWaitingHours = waitingHours === undefined || waitingHours === '' ? undefined : Number(waitingHours);
+  if (parsedDistance !== undefined && (!Number.isFinite(parsedDistance) || parsedDistance < 0)) {
+    return res.status(400).json({ success: false, message: 'Distance must be a non-negative number.' });
+  }
+  if (parsedWaitingHours !== undefined && (!Number.isFinite(parsedWaitingHours) || parsedWaitingHours < 0)) {
+    return res.status(400).json({ success: false, message: 'Waiting hours must be a non-negative number.' });
+  }
+  if (status !== undefined) b.status = status;
   if (driver !== undefined) b.driver = clean(driver, 60);
   if (vehicle !== undefined) b.vehicle = clean(vehicle, 60);
   if (reason !== undefined) b.reason = clean(reason, 200);
   if (payment !== undefined) b.payment = payment;
   if (driverId !== undefined) b.driverId = clean(driverId, 40);
   if (fare !== undefined && fare !== '') b.fare = Math.max(0, Number(fare) || 0);
+  if (parsedDistance !== undefined) b.distanceKm = parsedDistance;
+  if (parsedWaitingHours !== undefined) b.waitingHours = parsedWaitingHours;
+  if (status === 'No-show') b.noShowAt = new Date().toISOString();
+  if (status === 'Cancelled' && prevStatus === 'Accepted') {
+    const pickupAt = new Date(`${b.date}T${b.time || '00:00'}:00+05:30`).getTime();
+    const hoursUntilPickup = (pickupAt - Date.now()) / 3600000;
+    b.cancellationFeePercent = hoursUntilPickup >= 48
+      ? Number(settingsStore.cancelFee48) || 0
+      : hoursUntilPickup >= 24 ? Number(settingsStore.cancelFee24) || 0 : Number(settingsStore.cancelFeeUnder24) || 0;
+    b.cancellationFee = Math.round((Number(b.fare) || 0) * b.cancellationFeePercent / 100);
+  }
   saveDb();
 
   // Tell the customer by email (and SMS) when a request is accepted or declined - only when the status changes
-  if (['Accepted', 'Rejected'].includes(status) && status !== prevStatus) {
+  if (settingsStore.statusNotifications !== false && ['Accepted', 'Rejected'].includes(status) && status !== prevStatus) {
     notifyCustomer(b, status.toLowerCase()).catch(e => console.error('[NOTIFY] failed:', e.message));
   }
   res.status(200).json({ success: true, booking: b });
+});
+
+// PUBLIC: website settings consumed by the booking website
+app.get('/api/public-config', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  const publicKeys = [
+    'onlineBookings', 'maintenanceMode', 'minNotice', 'maxDuration', 'buffer', 'grace', 'maxPassengers',
+    'closedDates', 'airportSameDayHours', 'cancelFee48', 'cancelFee24', 'cancelFeeUnder24',
+    'baseFare', 'minimumFare', 'rateSedan', 'rateKDH', 'rateSUV', 'rateHatch',
+    'airportSurcharge', 'nightSurcharge', 'waitingCharge', 'tollCharges', 'parkingCharges',
+    'bookingFee', 'seasonalPricing', 'currency', 'taxPercent', 'companyName', 'logoUrl',
+    'heroTitle', 'heroDescription', 'contactPhone', 'whatsappNumber', 'bookingEmail',
+    'workingHours', 'physicalAddress', 'footerText', 'socialLinks', 'seoTitle', 'seoDescription',
+    'homepageVehicles', 'homepageDestinations', 'tours', 'promotionalBanner',
+    'bookingConfirmation', 'requiredFields', 'flightRequired', 'nationalityRequired',
+    'passengerFieldRequired', 'depositPercent', 'paymentMethods', 'statusNotifications',
+    'serviceAreas', 'unavailableLocations', 'categories', 'vehicleCounts',
+    'destinationAvailability', 'driverAvailabilityRules', 'vehicleOccupancyLimits',
+    'multiDaySettings', 'customRequestHandling',
+  ];
+  const settings = {};
+  publicKeys.forEach(key => { settings[key] = settingsStore[key]; });
+  return res.json({ success: true, settings });
 });
 
 // PUBLIC: which vehicle categories are currently enabled (read by the website)
@@ -577,7 +932,7 @@ app.delete('/api/drivers/:id', requireStaff, (req, res) => {
 });
 
 // FLEET (staff only)
-const VEHICLE_TYPES = ['Sedan', 'KDH', 'Hatchback'];
+const VEHICLE_TYPES = ['Sedan', 'SUV', 'KDH', 'Hatchback'];
 const vehicleFields = (src) => ({
   name: clean(src.name, 80), model: clean(src.model, 80), plate: clean(src.plate, 20).toUpperCase(),
   type: VEHICLE_TYPES.includes(src.type) ? src.type : '', color: clean(src.color, 30),
