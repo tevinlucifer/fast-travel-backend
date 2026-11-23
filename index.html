@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-    <title>Lanka Rides Back Office — Glassy V5</title>
+    <title>Lanka Rides Back Office</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
       :root { --bg: #12151c; --ink: #f4f6fb; --mut: rgba(244,246,251,.66); --bl: #3b82f6; --ln: rgba(255,255,255,.14); --card: rgba(26,30,40,.62); --nav: rgba(22,26,35,.68); --th: rgba(255,255,255,.08); --odd: rgba(255,255,255,.03); --pill: rgba(255,255,255,.12); }
@@ -166,11 +166,14 @@
       #login { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; background: rgba(12,15,22,.48); backdrop-filter: blur(14px); }
       [data-theme=light] #login { background: rgba(236,242,250,.55); }
       .lp { background: rgba(20,25,38,.55); backdrop-filter: blur(22px) saturate(145%); border-right: 1px solid rgba(255,255,255,.14); position: relative; overflow: hidden; color: #fff; padding: 56px; }
-      .lp img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .24; filter: saturate(1.1); }
+      .lp > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .24; filter: saturate(1.1); }
       .lp>* { position: relative; }
-      .lp h2 { font-size: 44px; margin-top: 150px; line-height: 1.1; }
+      .lp h2 { font-size: 44px; margin-top: 270px; line-height: 1.1; }
       .lp h2 span { font-weight: 400; color: rgba(255,255,255,.78); }
       .logo { width: 48px; height: 48px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.26); backdrop-filter: blur(12px); color: #fff; font: 700 18px Inter,sans-serif; display: grid; place-items: center; border-radius: 12px; }
+      .logo img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+      .lp-brand { display: flex; align-items: center; gap: 14px; color: #fff; font-size: 18px; font-weight: 700; }
+      .lp-brand .logo { flex: none; overflow: hidden; background: #e8e7e5; border-color: rgba(255,255,255,.45); }
       .lf { display: flex; flex-direction: column; justify-content: center; padding: 0 90px; background: rgba(18,22,32,.52); backdrop-filter: blur(20px); }
       [data-theme=light] .lf { background: rgba(255,255,255,.68); }
       .lf h1 { color: var(--ink); font-size: 40px; }
@@ -345,7 +348,7 @@
       .si .t1 { font-size: 14px; font-weight: 600; color: var(--ink); }
       .si .t2 { font-size: 12px; color: var(--mut); }
 
-      /* ===== Glassy Dashboard V5 Shell & Layout ===== */
+      /* ===== Dashboard Shell & Layout ===== */
       #shell { display: flex; min-height: 100vh; background: rgba(10,13,20,.44); backdrop-filter: blur(8px); }
       [data-theme=light] #shell { background: rgba(226,234,246,.42); }
       .side {
@@ -954,9 +957,11 @@
     </button>
     <section id="login">
       <div class="lp">
-        <div class="logo">TD</div>
+        <div class="lp-brand">
+          <div class="logo"><img src="images/resizes%20company%20logo%20512.png" alt="TD World"></div>
+          <span>Lanka Rides Back Office</span>
+        </div>
         <img src="images/hero-car.jpg" alt="">
-        <p style="margin-top:130px;color:rgba(255,255,255,.78)">Lanka Rides back office · Glassy V5</p>
         <h2><b>Secure access.</b><br><span>Smarter control.</span></h2>
       </div>
       <form class="lf" id="lf">
@@ -978,7 +983,10 @@
     <section id="shell" class="hidden">
       <button id="navBackdrop" class="nav-backdrop hidden" type="button" aria-label="Close navigation" tabindex="-1"></button>
       <aside class="side" id="side">
-        <div class="brand"><div class="logo">TD</div><b>Lanka Rides</b></div>
+        <div class="brand">
+          <div class="logo"><img src="images/resizes%20company%20logo%20512.png" alt="TD World"></div>
+          <b>Lanka Rides Back Office</b>
+        </div>
         <div id="nv"></div>
         <a href="#" id="lo" class="out">
           <svg viewBox="0 0 24 24">
