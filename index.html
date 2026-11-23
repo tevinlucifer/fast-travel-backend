@@ -582,7 +582,7 @@
       .rft { width: 100%; margin: 0; color: var(--mut); font-size: 13px; }
       tr.grp td { background: var(--th); font-weight: 600; }
       tr.tot td { font-weight: 700; border-top: 2px solid var(--ink); }
-      :root {
+      :root[data-theme=dark] {
         --bg: #101827;
         --ink: #f5f7fb;
         --mut: rgba(205,215,232,.66);
@@ -654,6 +654,50 @@
       .rw { border-radius: 9px; }
       .rw .ic { border-radius: 11px; }
       .bd { border-radius: 999px; }
+      [data-theme=light] body {
+        background: linear-gradient(145deg, #dce3ed 0%, #cbd5e1 100%);
+        background-attachment: fixed;
+      }
+      [data-theme=light] #shell { background: rgba(215,224,237,.72); }
+      [data-theme=light] .side {
+        background: rgba(212,222,236,.96);
+        border-right-color: rgba(71,85,105,.18);
+        box-shadow: 8px 0 24px rgba(30,41,59,.08);
+      }
+      [data-theme=light] .bkb,
+      [data-theme=light] .ib,
+      [data-theme=light] .sbx,
+      [data-theme=light] .usr {
+        background: rgba(224,231,241,.92);
+        border-color: rgba(71,85,105,.2);
+      }
+      [data-theme=light] .cd,
+      [data-theme=light] .tw,
+      [data-theme=light] .st,
+      [data-theme=light] .rf,
+      [data-theme=light] .rail-card,
+      [data-theme=light] .glass-card {
+        background: rgba(231,237,246,.96);
+        border-color: rgba(100,116,139,.24);
+        box-shadow: 0 10px 24px rgba(30,41,59,.08), inset 0 1px 0 rgba(255,255,255,.58);
+      }
+      [data-theme=light] .operation-card {
+        background: linear-gradient(145deg, #d8e1ee, #cbd7e7);
+      }
+      [data-theme=light] .balance-card {
+        background: linear-gradient(135deg, #dce5f1, #ced9e8);
+      }
+      [data-theme=light] .operation-action.secondary {
+        background: rgba(255,255,255,.42);
+      }
+      [data-theme=light] .growth-pill {
+        color: #536414;
+        background: rgba(190,211,74,.24);
+        border-color: rgba(83,100,20,.14);
+      }
+      [data-theme=light] .mini-chart i {
+        background: linear-gradient(180deg,#a8b94f,#71853c);
+      }
       @media print {
         body, #shell { background: #fff !important; }
         html[data-theme] { --bg: #fff; --ink: #000; --card: #fff; --th: #eee; --odd: #fff; --ln: #ccc; --mut: #555; }
